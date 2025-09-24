@@ -5,65 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Volunteer App — Register</title>
   <style>
-    body { font-family: sans-serif; background: #0f172a; color: #e5e7eb; display: grid; place-items: center; height: 100vh; margin: 0; }
-    .card { max-width: 420px; width: 100%; background: #111827; border-radius: 12px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
-    h1 { margin: 0 0 10px; }
-    p.sub { margin: 0 0 18px; color: #94a3b8; font-size: 14px; }
+    :root {
+      --bg: #0f172a;          /* slate-900 */
+      --card: #111827;        /* gray-900 */
+      --muted: #94a3b8;       /* slate-400 */
+      --text: #e5e7eb;        /* gray-200 */
+      --accent: #6366f1;      /* indigo-500 */
+      --accent-600: #4f46e5;  /* indigo-600 */
+      --danger: #ef4444;      /* red-500 */
+      --ok: #22c55e;          /* green-500 */
+      --ring: rgba(99, 102, 241, 0.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(60% 60% at 50% 0%, #111827 0%, #0b1020 70%), var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+    }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    p.sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+
     .field { margin-bottom: 14px; }
-    label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
-    input[type="email"], input[type="password"] { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.25); background: #0b1225; color: #e5e7eb; }
-    input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35); }
-    .actions { margin-top: 18px; }
-    button.primary { width: 100%; padding: 12px 14px; border-radius: 8px; border: none; background: linear-gradient(180deg, #6366f1, #4f46e5); color: white; font-weight: 600; cursor: pointer; }
-    .error { color: #ef4444; font-size: 12px; margin-top: 6px; }
-    .success { color: #22c55e; font-size: 13px; margin-top: 8px; }
-    .footer { margin-top: 14px; font-size: 13px; color: #94a3b8; text-align: center; }
-    .footer a { color: #a5b4fc; text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.25);
+      background: #0b1225;
+      color: var(--text);
+      outline: none;
+      transition: box-shadow 120ms ease, border-color 120ms ease;
+    }
+    input[type="email"]:focus, input[type="password"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0 6px; font-size: 13px; color: var(--muted); }
+    .checkbox { display: flex; align-items: center; gap: 8px; }
+    .actions { display: grid; gap: 8px; margin-top: 12px; }
+    button.primary {
+      padding: 12px 14px; border-radius: 10px; border: none;
+      background: linear-gradient(180deg, var(--accent), var(--accent-600));
+      color: white; font-weight: 600; cursor: pointer;
+    }
+    .link { color: #a5b4fc; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+
+    .error { color: var(--danger); font-size: 12px; margin-top: 6px; }
+    .success { color: var(--ok); font-size: 13px; margin-top: 8px; }
+
+    .divider { height: 1px; background: rgba(148,163,184,0.15); margin: 14px 0; }
+    .footer { font-size: 12px; color: var(--muted); text-align: center; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Create Account</h1>
-    <p class="sub">Sign up with your email and password</p>
+  <main class="card" role="main">
+    <header>
+      <h1>Create account</h1>
+      <p class="sub">Use your email (username) and a password</p>
+    </header>
 
     <form id="registerForm" novalidate>
       <div class="field">
-        <label for="email">Email (Username) <span style="color:#ef4444">*</span></label>
-        <input id="email" name="email" type="email" required maxlength="100" placeholder="you@example.org" />
-        <div id="emailError" class="error"></div>
+        <label for="email">Email <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+        <input id="email" name="email" type="email" inputmode="email" required maxlength="100" placeholder="you@example.org" autocomplete="username" />
+        <div id="emailError" class="error" role="alert" aria-live="polite"></div>
       </div>
 
       <div class="field">
-        <label for="password">Password <span style="color:#ef4444">*</span></label>
-        <input id="password" name="password" type="password" required minlength="8" maxlength="64" placeholder="••••••••" />
-        <div id="passwordError" class="error"></div>
+        <label for="password">Password <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+        <input id="password" name="password" type="password" required minlength="8" maxlength="64" placeholder="••••••••" autocomplete="new-password" />
+        <div id="passwordError" class="error" role="alert" aria-live="polite"></div>
       </div>
 
       <div class="field">
-        <label for="confirm">Confirm Password <span style="color:#ef4444">*</span></label>
-        <input id="confirm" name="confirm" type="password" required minlength="8" maxlength="64" placeholder="••••••••" />
-        <div id="confirmError" class="error"></div>
+        <label for="confirm">Confirm Password <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+        <input id="confirm" name="confirm" type="password" required minlength="8" maxlength="64" placeholder="••••••••" autocomplete="new-password" />
+        <div id="confirmError" class="error" role="alert" aria-live="polite"></div>
+      </div>
+
+      <div class="row">
+        <label class="checkbox"><input type="checkbox" id="showPw" /> Show passwords</label>
       </div>
 
       <div class="actions">
-        <button type="submit" class="primary">Register</button>
+        <button class="primary" type="submit">Register</button>
       </div>
-      <div id="formMessage" class="success"></div>
-    </form>
 
-    <p class="footer">Already have an account? <a href="index.html">Sign in</a></p>
+      <div id="formMessage" class="success" aria-live="polite"></div>
+
+      <div class="divider"></div>
+      <p class="footer">Already have an account? <a class="link" href="index.html">Sign in</a></p>
+    </form>
   </main>
 
   <script>
     const form = document.getElementById('registerForm');
     const email = document.getElementById('email');
     const password = document.getElementById('password');
-    const confirm = document.getElementById('confirm');
+    const confirmPw = document.getElementById('confirm');
     const emailError = document.getElementById('emailError');
     const passwordError = document.getElementById('passwordError');
     const confirmError = document.getElementById('confirmError');
+    const showPw = document.getElementById('showPw');
     const formMessage = document.getElementById('formMessage');
+
+    showPw.addEventListener('change', () => {
+      const type = showPw.checked ? 'text' : 'password';
+      password.type = type;
+      confirmPw.type = type;
+    });
+
+    function validateEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+    }
 
     function clearErrors() {
       emailError.textContent = '';
@@ -77,14 +148,18 @@
       clearErrors();
 
       let ok = true;
-      if (!email.value.trim()) {
+
+      // Email
+      const emailVal = email.value.trim();
+      if (!emailVal) {
         emailError.textContent = 'Email is required.';
         ok = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
+      } else if (!validateEmail(emailVal)) {
         emailError.textContent = 'Enter a valid email address.';
         ok = false;
       }
 
+      // Password
       if (!password.value) {
         passwordError.textContent = 'Password is required.';
         ok = false;
@@ -93,18 +168,22 @@
         ok = false;
       }
 
-      if (confirm.value !== password.value) {
+      // Confirm
+      if (!confirmPw.value) {
+        confirmError.textContent = 'Please confirm your password.';
+        ok = false;
+      } else if (confirmPw.value !== password.value) {
         confirmError.textContent = 'Passwords do not match.';
         ok = false;
       }
 
       if (!ok) return;
 
-      // Pretend registration worked
-      formMessage.textContent = 'Account created! Redirecting to profile page…';
+      // Pretend success
+      formMessage.textContent = 'Account created! Redirecting to profile…';
       setTimeout(() => {
         window.location.href = 'profile.html';
-      }, 1000);
+      }, 900);
     });
   </script>
 </body>
