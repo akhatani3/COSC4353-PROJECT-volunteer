@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Volunteer App — Matching Form</title>
+  <title>Volunteer App — Admin Matching</title>
   <style>
     :root {
       --bg: #0f172a; 
@@ -31,19 +31,14 @@
       align-items: center;
       border-bottom: 1px solid rgba(148,163,184,0.15);
     }
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-    }
+    header h1 { margin: 0; font-size: 20px; }
     nav a {
       color: var(--muted);
       text-decoration: none;
       margin-left: 18px;
       font-size: 14px;
     }
-    nav a:hover {
-      color: var(--accent);
-    }
+    nav a:hover { color: var(--accent); }
     main {
       flex: 1;
       padding: 28px;
@@ -65,13 +60,8 @@
       font-size: 22px;
       margin-bottom: 20px;
     }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      color: var(--text);
-    }
-    input, select, textarea {
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text); }
+    input, select {
       width: 100%;
       padding: 10px;
       margin-bottom: 18px;
@@ -79,10 +69,9 @@
       border: 1px solid rgba(148,163,184,0.2);
       background: var(--card);
       color: var(--text);
+      font-size: 14px;
     }
-    input:focus, select:focus, textarea:focus {
-      outline: 2px solid var(--accent);
-    }
+    input:focus, select:focus { outline: 2px solid var(--accent); }
     button {
       width: 100%;
       padding: 12px;
@@ -94,9 +83,7 @@
       cursor: pointer;
       font-size: 16px;
     }
-    button:hover {
-      opacity: 0.9;
-    }
+    button:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
@@ -113,35 +100,15 @@
 
   <main>
     <div class="form-card">
-      <h2>Find the Perfect Volunteer Opportunity</h2>
+      <h2>Match Volunteer to Event</h2>
       <form>
-        <label for="name">Full Name</label>
-        <input type="text" id="name" name="name" placeholder="Your name" required>
+        <label for="volunteerName">Volunteer Name</label>
+        <input type="text" id="volunteerName" name="volunteerName" value="John Doe" readonly>
 
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+        <label for="matchedEvent">Matched Event</label>
+        <input type="text" id="matchedEvent" name="matchedEvent" value="Beach Cleanup" readonly>
 
-        <label for="availability">Availability</label>
-        <select id="availability" name="availability" required>
-          <option value="">Select...</option>
-          <option value="weekdays">Weekdays</option>
-          <option value="weekends">Weekends</option>
-          <option value="flexible">Flexible</option>
-        </select>
-
-        <label for="skills">Skills / Interests</label>
-        <textarea id="skills" name="skills" rows="3" placeholder="e.g., tutoring, organizing, cooking"></textarea>
-
-        <label for="preferences">Volunteer Preferences</label>
-        <select id="preferences" name="preferences" required>
-          <option value="">Select...</option>
-          <option value="environment">Environment</option>
-          <option value="animals">Animals</option>
-          <option value="community">Community</option>
-          <option value="education">Education</option>
-        </select>
-
-        <button type="submit">Submit</button>
+        <button type="submit">Confirm Match</button>
       </form>
     </div>
   </main>
