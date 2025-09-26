@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Volunteer History</title>
+   <link href="style.css" rel="stylesheet" type="text/css">
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+</script>
+
+</head>
+<body>
+  <h1>Volunteer History</h1>
+  <table id="historyTable">
+    <thead>
+      <tr>
+        <th>Volunteer</th>
+        <th>Event</th>
+        <th>Date</th>
+        <th>Location</th>
+        <th>Skills</th>
+        <th>Urgency</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const profile = JSON.parse(localStorage.getItem('currentUser'));
+    if (!profile) {
+      alert('Not logged in.');
+      window.location.href = 'index.html';
+    }
+
+    const historyKey = 'va_history';
+    function getHistory() {
+      return JSON.parse(localStorage.getItem(historyKey) || '[]');
+    }
+
+    function renderHistory() {
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+
+      let records = getHistory();
+      if (profile.role !== 'admin') {
+        // Volunteers see only their own history
+        records = records.filter(r => r.volunteer === profile.email);
+      }
+
+      records.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.volunteer}</td>
+          <td>${r.eventName}</td>
+          <td>${r.eventDate}</td>
+          <td>${r.location}</td>
+          <td>${r.requiredSkills.join(', ')}</td>
+          <td>${r.urgency}</td>
+          <td class="status ${r.status}">${r.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>
