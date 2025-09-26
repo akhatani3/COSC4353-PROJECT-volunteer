@@ -1,6 +1,6 @@
 # COSC4353-PROJECT-volunteer
 
-1. Login Page
+# 1. Login Page
 Purpose: Allows volunteers and administrators to securely access the system.
 
 
@@ -11,7 +11,7 @@ Email and password fields with validation (email format check, password length).
 Link to the registration page for new users.
 Design: Simple, card-based form consistent with the rest of the app. Validation errors are shown inline.
 Functionality: On successful login, the system redirects the user to their profile page.
-2. Registration Page
+# 2. Registration Page
 Purpose: Enables new users (volunteers or admins) to create an account.
 
 
@@ -29,7 +29,7 @@ Confirm password must match.
 
 
 Functionality: On success, the user is redirected to the profile page to complete additional details.
-3. User Profile Page
+# 3. User Profile Page
 Purpose: Volunteers complete or update their personal details after registration.
 
 
@@ -54,7 +54,7 @@ Logout button clears user data and returns to login.
 
 Design: Consistent card layout with clear labels and error handling.
 
-4. Event Management Page (Admin Only)
+# 4. Event Management Page (Admin Only)
 
 Purpose: Administrators can create and manage events.
 
@@ -72,7 +72,7 @@ Validations: Required fields enforced, character limits checked.
 
 
 Functionality: Admins can save event details into the system (for demo stored in localStorage). These events will later appear in volunteer matching and history pages.
-5. Volunteer Matching Form (Admin Only)
+# 5. Volunteer Matching Form (Admin Only)
 Purpose: Helps administrators assign volunteers to events based on their profiles.
 
 
@@ -87,7 +87,7 @@ Admin can confirm matches, which triggers a notification for the volunteer.
 For the demo version, matching is simplified using basic checks (skills and availability) from localStorage.
 
 
-6. Notification System
+# 6. Notification System
 Purpose: Keeps volunteers updated on assignments, reminders, and event changes.
 
 
@@ -99,7 +99,7 @@ Examples: “You’ve been assigned to Event A”, “Reminder: Event B tomorrow
 Functionality:
 In the demo, notifications are generated and stored in localStorage.
 In a full system, notifications could be delivered via email, SMS, or in-app alerts.
-7. Volunteer History Page
+# 7. Volunteer History Page
 Purpose: Allows volunteers and administrators to review past participation.
 
 
