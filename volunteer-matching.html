@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volunteer App — Matching Form</title>
+  <style>
+    :root {
+      --bg: #0f172a; 
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #6366f1;
+      --accent-600: #4f46e5;
+      --ring: rgba(99, 102, 241, 0.35);
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--card);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(148,163,184,0.15);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 18px;
+      font-size: 14px;
+    }
+    nav a:hover {
+      color: var(--accent);
+    }
+    main {
+      flex: 1;
+      padding: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .form-card {
+      background: var(--card);
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    }
+    .form-card h2 {
+      margin-top: 0;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: var(--text);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: var(--card);
+      color: var(--text);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--accent);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-600));
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Volunteer Matching</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="event.html">Events</a>
+      <a href="register.html">Register</a>
+      <a href="profile.html">Profile</a>
+      <a href="matching.html">Matching Form</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <h2>Find the Perfect Volunteer Opportunity</h2>
+      <form>
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="Your name" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+
+        <label for="availability">Availability</label>
+        <select id="availability" name="availability" required>
+          <option value="">Select...</option>
+          <option value="weekdays">Weekdays</option>
+          <option value="weekends">Weekends</option>
+          <option value="flexible">Flexible</option>
+        </select>
+
+        <label for="skills">Skills / Interests</label>
+        <textarea id="skills" name="skills" rows="3" placeholder="e.g., tutoring, organizing, cooking"></textarea>
+
+        <label for="preferences">Volunteer Preferences</label>
+        <select id="preferences" name="preferences" required>
+          <option value="">Select...</option>
+          <option value="environment">Environment</option>
+          <option value="animals">Animals</option>
+          <option value="community">Community</option>
+          <option value="education">Education</option>
+        </select>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
