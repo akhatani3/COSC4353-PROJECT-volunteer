@@ -1,12 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Volunteer App — Events</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer App — Event Management</title>
   <style>
     :root {
-      --bg: #0f172a; 
+      --bg: #0f172a;
       --card: #111827;
       --muted: #94a3b8;
       --text: #e5e7eb;
@@ -14,6 +14,7 @@
       --accent-600: #4f46e5;
       --ring: rgba(99, 102, 241, 0.35);
     }
+
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
@@ -32,16 +33,19 @@
       align-items: center;
       border-bottom: 1px solid rgba(148,163,184,0.15);
     }
+
     header h1 {
       margin: 0;
       font-size: 20px;
     }
+
     nav a {
       color: var(--muted);
       text-decoration: none;
       margin-left: 18px;
       font-size: 14px;
     }
+
     nav a:hover {
       color: var(--accent);
     }
@@ -49,39 +53,61 @@
     main {
       flex: 1;
       padding: 28px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
     }
 
-    .card {
+    .form-card {
       background: var(--card);
       border: 1px solid rgba(148,163,184,0.15);
       border-radius: 16px;
-      padding: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 550px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
     }
-    .card h2 {
+
+    .form-card h2 {
       margin-top: 0;
-      font-size: 18px;
+      font-size: 22px;
+      margin-bottom: 20px;
     }
-    .card p {
+
+    label {
+      display: block;
+      margin-bottom: 6px;
       font-size: 14px;
-      color: var(--muted);
+      color: var(--text);
     }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--accent);
+    }
+
     button {
-      margin-top: auto;
-      padding: 10px 14px;
+      width: 100%;
+      padding: 12px;
       border: none;
       border-radius: 8px;
       background: linear-gradient(180deg, var(--accent), var(--accent-600));
       color: white;
-      cursor: pointer;
       font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
     }
+
     button:hover {
       opacity: 0.9;
     }
@@ -89,38 +115,52 @@
 </head>
 <body>
   <header>
-    <h1>Volunteer Events</h1>
+    <h1>Event Management</h1>
     <nav>
       <a href="index.html">Home</a>
       <a href="event.html">Events</a>
       <a href="register.html">Register</a>
       <a href="profile.html">Profile</a>
+      <a href="event-management.html">Manage Events</a>
     </nav>
   </header>
 
   <main>
-    <div class="card">
-      <h2>Beach Cleanup</h2>
-      <p>Help restore our coastline by joining the annual beach cleanup drive.</p>
-      <button>Sign Up</button>
-    </div>
+    <div class="form-card">
+      <h2>Create / Manage Event</h2>
+      <form>
+        <label for="eventName">Event Name</label>
+        <input type="text" id="eventName" name="eventName" maxlength="100" placeholder="Enter event name" required>
 
-    <div class="card">
-      <h2>Food Drive</h2>
-      <p>Assist in distributing meals to families in need at the community center.</p>
-      <button>Sign Up</button>
-    </div>
+        <label for="description">Event Description</label>
+        <textarea id="description" name="description" rows="3" placeholder="Describe the event" required></textarea>
 
-    <div class="card">
-      <h2>Tree Planting</h2>
-      <p>Join our eco-initiative to plant trees in local parks.</p>
-      <button>Sign Up</button>
-    </div>
+        <label for="location">Location</label>
+        <textarea id="location" name="location" rows="2" placeholder="Enter event location" required></textarea>
 
-    <div class="card">
-      <h2>Animal Shelter Support</h2>
-      <p>Spend the day helping out at the local shelter — walking dogs, feeding animals.</p>
-      <button>Sign Up</button>
+        <label for="skills">Required Skills</label>
+        <select id="skills" name="skills" multiple size="4" required>
+          <option value="organization">Organization</option>
+          <option value="communication">Communication</option>
+          <option value="teaching">Teaching</option>
+          <option value="first-aid">First Aid</option>
+          <option value="fundraising">Fundraising</option>
+          <option value="environmental">Environmental</option>
+        </select>
+
+        <label for="urgency">Urgency</label>
+        <select id="urgency" name="urgency" required>
+          <option value="">Select urgency</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+
+        <label for="date">Event Date</label>
+        <input type="date" id="date" name="date" required>
+
+        <button type="submit">Save Event</button>
+      </form>
     </div>
   </main>
 </body>
