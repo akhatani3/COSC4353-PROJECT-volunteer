@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Volunteer App — Events</title>
+  <style>
+    :root {
+      --bg: #0f172a; 
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #6366f1;
+      --accent-600: #4f46e5;
+      --ring: rgba(99, 102, 241, 0.35);
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--card);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(148,163,184,0.15);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 18px;
+      font-size: 14px;
+    }
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    main {
+      flex: 1;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .card p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    button {
+      margin-top: auto;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-600));
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Volunteer Events</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="event.html">Events</a>
+      <a href="register.html">Register</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Beach Cleanup</h2>
+      <p>Help restore our coastline by joining the annual beach cleanup drive.</p>
+      <button>Sign Up</button>
+    </div>
+
+    <div class="card">
+      <h2>Food Drive</h2>
+      <p>Assist in distributing meals to families in need at the community center.</p>
+      <button>Sign Up</button>
+    </div>
+
+    <div class="card">
+      <h2>Tree Planting</h2>
+      <p>Join our eco-initiative to plant trees in local parks.</p>
+      <button>Sign Up</button>
+    </div>
+
+    <div class="card">
+      <h2>Animal Shelter Support</h2>
+      <p>Spend the day helping out at the local shelter — walking dogs, feeding animals.</p>
+      <button>Sign Up</button>
+    </div>
+  </main>
+</body>
+</html>
