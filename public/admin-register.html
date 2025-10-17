@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Registration — Volunteer App</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+  <script src="storage.js"></script>
+  <div class="card">
+    <h1>Create Admin Account</h1>
+    <p style="color:#94a3b8;font-size:14px;">Restricted: for administrators only</p>
+
+    <form id="adminRegisterForm" novalidate>
+      <div>
+        <label for="email">Email *</label>
+        <input id="email" type="email" required maxlength="100" placeholder="admin@example.org">
+        <div id="emailErr" class="error"></div>
+      </div>
+
+      <div>
+        <label for="password">Password *</label>
+        <input id="password" type="password" required minlength="8" maxlength="64" placeholder="••••••••">
+        <div id="passwordErr" class="error"></div>
+      </div>
+
+      <div>
+        <label for="confirm">Confirm Password *</label>
+        <input id="confirm" type="password" required minlength="8" maxlength="64" placeholder="••••••••">
+        <div id="confirmErr" class="error"></div>
+      </div>
+
+      <div class="row">
+        <label><input type="checkbox" id="showPw"> Show passwords</label>
+      </div>
+
+      <div class="actions">
+        <button class="primary" type="submit">Register Admin</button>
+      </div>
+
+      <div id="formMsg" class="success"></div>
+    </form>
+    <p class="footer">Already have an admin account? <a href="index.html">Sign in</a></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('adminRegisterForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const confirmPw = document.getElementById('confirm');
+    const showPw = document.getElementById('showPw');
+    const emailErr = document.getElementById('emailErr');
+    const passwordErr = document.getElementById('passwordErr');
+    const confirmErr = document.getElementById('confirmErr');
+    const formMsg = document.getElementById('formMsg');
+
+    showPw.addEventListener('change', () => {
+      const type = showPw.checked ? 'text' : 'password';
+      password.type = type; confirmPw.type = type;
+    });
+
+    function validateEmail(v) { return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(v); }
+    function clearErrors() { emailErr.textContent=''; passwordErr.textContent=''; confirmErr.textContent=''; formMsg.textContent=''; }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault(); clearErrors();
+      let ok = true;
+      const emailVal = email.value.trim();
+
+      if (!emailVal) { emailErr.textContent = 'Email is required.'; ok = false; }
+      else if (!validateEmail(emailVal)) { emailErr.textContent = 'Invalid email format.'; ok = false; }
+
+      if (!password.value) { passwordErr.textContent = 'Password required.'; ok = false; }
+      else if (password.value.length < 8) { passwordErr.textContent = 'Must be at least 8 characters.'; ok = false; }
+
+      if (!confirmPw.value) { confirmErr.textContent = 'Confirm your password.'; ok = false; }
+      else if (confirmPw.value !== password.value) { confirmErr.textContent = 'Passwords do not match.'; ok = false; }
+
+      if (!ok) return;
+
+      // check existing user
+      const existing = StorageAPI.findUser(emailVal);
+      if (existing) { emailErr.textContent = 'Email already registered.'; return; }
+
+      // create admin object
+      const newAdmin = {
+        email: emailVal,
+        password: password.value,
+        name: 'Admin',
+        google: false,
+        role: 'admin',
+        profile: null
+      };
+
+      StorageAPI.addUser(newAdmin);
+      localStorage.setItem('currentUser', JSON.stringify(newAdmin));
+
+      formMsg.textContent = 'Admin account created! Redirecting…';
+      setTimeout(() => { window.location.href = 'event-management.html'; }, 1000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>User Profile — Volunteer App</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+   <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+</head>
+<body>
+
+  <script src="storage.js"></script>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+</script>
+
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h1>Profile</h1>
+      <div>
+        <button id="logoutBtn" class="warn">Logout</button>
+      </div>
+    </div>
+
+    <p class="muted">Complete your profile. Required fields are enforced.</p>
+
+    <form id="profileForm" novalidate>
+      <div class="grid">
+        <div>
+          <label for="fullName">Full Name <span style="color:#ef4444">*</span></label>
+          <input id="fullName" type="text" maxlength="50" required>
+          <div id="nameErr" class="error"></div>
+        </div>
+
+        <div>
+          <label for="emailDisplay">Email</label>
+          <input id="emailDisplay" type="email" disabled>
+        </div>
+
+        <div style="grid-column:1/3; margin-top:6px">
+          <label for="addr1">Address 1 <span style="color:#ef4444">*</span></label>
+          <input id="addr1" type="text" maxlength="100" required>
+          <div id="addr1Err" class="error"></div>
+        </div>
+
+        <div style="grid-column:1/3; margin-top:6px">
+          <label for="addr2">Address 2 (optional)</label>
+          <input id="addr2" type="text" maxlength="100">
+        </div>
+
+        <div>
+          <label for="city">City <span style="color:#ef4444">*</span></label>
+          <input id="city" type="text" maxlength="100" required>
+          <div id="cityErr" class="error"></div>
+        </div>
+
+        <div>
+          <label for="state">State <span style="color:#ef4444">*</span></label>
+          <select id="state" required>
+            <option value="">-- Select state --</option>
+          </select>
+          <div id="stateErr" class="error"></div>
+        </div>
+
+        <div>
+          <label for="zip">Zip Code <span style="color:#ef4444">*</span></label>
+          <input id="zip" type="text" maxlength="9" required placeholder="12345 or 12345-6789">
+          <div id="zipErr" class="error"></div>
+        </div>
+
+        <div>
+          <label for="skills">Skills (select one or more) <span style="color:#ef4444">*</span></label>
+          <select id="skills" multiple class="skills" required>
+            <!-- options added by script -->
+          </select>
+          <div id="skillsErr" class="error"></div>
+        </div>
+
+        <div style="grid-column:1/3;">
+          <label for="prefs">Preferences (optional)</label>
+          <textarea id="prefs" maxlength="500" placeholder="Any preferences or notes..."></textarea>
+        </div>
+
+        <div style="grid-column:1/3;">
+          <label>Availability (choose dates) <span style="color:#ef4444">*</span></label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="availDate" type="date">
+            <button type="button" id="addDateBtn">Add</button>
+          </div>
+          <div id="availErr" class="error"></div>
+          <div class="dates-list" id="datesList"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="primary">Save Profile</button>
+        <button type="button" id="viewNotifsBtn" class="primary" style="background:#10b981">Notifications</button>
+        <button type="button" onclick="location.href='home.html'">Home</button>
+      </div>
+
+      <div id="saveMsg" class="muted" style="margin-top:10px"></div>
+    </form>
+
+    <div id="notifsPanel" style="margin-top:12px; display:none;">
+      <h3 style="margin:0 0 8px 0">Notifications</h3>
+      <div id="notifsList"></div>
+    </div>
+  </div>
+
+  <script>
+    // Constants
+    const STATES = [
+      ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+      ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],
+      ['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],
+      ['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],
+      ['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],
+      ['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],
+      ['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],
+      ['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],
+      ['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],
+      ['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']
+    ];
+
+    const SKILLS = [
+      'First Aid','CPR','Food Service','Logistics','Child Care','Tutoring','Admin','Drivers','Medical','Translation'
+    ];
+
+    // Elements
+    const currentUserRaw = localStorage.getItem('currentUser');
+    const currentUser = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    const emailDisplay = document.getElementById('emailDisplay');
+    const fullName = document.getElementById('fullName');
+    const addr1 = document.getElementById('addr1');
+    const addr2 = document.getElementById('addr2');
+    const city = document.getElementById('city');
+    const stateEl = document.getElementById('state');
+    const zip = document.getElementById('zip');
+    const skillsEl = document.getElementById('skills');
+    const prefs = document.getElementById('prefs');
+    const availDate = document.getElementById('availDate');
+    const addDateBtn = document.getElementById('addDateBtn');
+    const datesList = document.getElementById('datesList');
+    const profileForm = document.getElementById('profileForm');
+    const saveMsg = document.getElementById('saveMsg');
+    const viewNotifsBtn = document.getElementById('viewNotifsBtn');
+    const notifsPanel = document.getElementById('notifsPanel');
+    const notifsList = document.getElementById('notifsList');
+
+    const nameErr = document.getElementById('nameErr');
+    const addr1Err = document.getElementById('addr1Err');
+    const cityErr = document.getElementById('cityErr');
+    const stateErr = document.getElementById('stateErr');
+    const zipErr = document.getElementById('zipErr');
+    const skillsErr = document.getElementById('skillsErr');
+    const availErr = document.getElementById('availErr');
+
+    if (!currentUser || !currentUser.email) {
+      alert('You are not logged in.');
+      window.location.href = 'index.html';
+    }
+
+    // populate states and skills
+    (function populateOptions(){
+      for (const s of STATES) {
+        const opt = document.createElement('option');
+        opt.value = s[0];
+        opt.textContent = s[1];
+        stateEl.appendChild(opt);
+      }
+      for (const sk of SKILLS) {
+        const opt = document.createElement('option');
+        opt.value = sk;
+        opt.textContent = sk;
+        skillsEl.appendChild(opt);
+      }
+    })();
+
+    // Load user & profile
+    const userObj = StorageAPI.findUser(currentUser.email);
+    if (!userObj) {
+      alert('Local account missing. Please sign in again.');
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    } else {
+      emailDisplay.value = userObj.email;
+      // if profile exists, fill fields
+      const p = userObj.profile || {};
+      fullName.value = p.fullName || userObj.name || '';
+      addr1.value = p.address1 || '';
+      addr2.value = p.address2 || '';
+      city.value = p.city || '';
+      stateEl.value = p.state || '';
+      zip.value = p.zip || '';
+      prefs.value = p.preferences || '';
+      if (Array.isArray(p.skills)) {
+        for (const opt of skillsEl.options) {
+          opt.selected = p.skills.includes(opt.value);
+        }
+      }
+      // availability dates
+      window._availDates = p.availability ? [...p.availability] : [];
+      renderDates();
+    }
+
+    function renderDates(){
+      datesList.innerHTML = '';
+      (window._availDates || []).sort().forEach(d => {
+        const chip = document.createElement('div');
+        chip.className = 'date-chip';
+        chip.innerHTML = `<span>${d}</span><button type="button" data-date="${d}" style="background:none;border:none;color:#f87171;cursor:pointer">✕</button>`;
+        datesList.appendChild(chip);
+      });
+      // attach remove handlers
+      datesList.querySelectorAll('button[data-date]').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const d = e.currentTarget.getAttribute('data-date');
+          window._availDates = (window._availDates || []).filter(x => x !== d);
+          renderDates();
+        });
+      });
+    }
+
+    addDateBtn.addEventListener('click', () => {
+      if (!availDate.value) return;
+      const v = availDate.value;
+      window._availDates = window._availDates || [];
+      if (!window._availDates.includes(v)) window._availDates.push(v);
+      renderDates();
+      availDate.value = '';
+    });
+
+    // validation helpers
+    function validZip(z) {
+      const clean = z.trim();
+      return /^\d{5}(-\d{4})?$/.test(clean) || /^\d{5}$/.test(clean) || /^\d{9}$/.test(clean);
+    }
+
+    profileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // clear errors
+      nameErr.textContent = ''; addr1Err.textContent = ''; cityErr.textContent = ''; stateErr.textContent = ''; zipErr.textContent = ''; skillsErr.textContent = ''; availErr.textContent = '';
+      saveMsg.textContent = '';
+
+      let ok = true;
+      if (!fullName.value.trim()) { nameErr.textContent = 'Full name is required.'; ok = false; }
+      if (!addr1.value.trim()) { addr1Err.textContent = 'Address 1 is required.'; ok = false; }
+      if (!city.value.trim()) { cityErr.textContent = 'City is required.'; ok = false; }
+      if (!stateEl.value) { stateErr.textContent = 'Please select a state.'; ok = false; }
+      if (!zip.value.trim() || zip.value.trim().length < 5 || !validZip(zip.value.trim())) { zipErr.textContent = 'Enter a valid zip code (at least 5 digits).'; ok = false; }
+      const selectedSkills = Array.from(skillsEl.selectedOptions).map(o => o.value);
+      if (!selectedSkills.length) { skillsErr.textContent = 'Select at least one skill.'; ok = false; }
+      if (!window._availDates || !window._availDates.length) { availErr.textContent = 'Add at least one availability date.'; ok = false; }
+
+      if (!ok) return;
+
+      // build profile
+      const profile = {
+        fullName: fullName.value.trim(),
+        address1: addr1.value.trim(),
+        address2: addr2.value.trim(),
+        city: city.value.trim(),
+        state: stateEl.value,
+        zip: zip.value.trim(),
+        skills: selectedSkills,
+        preferences: prefs.value.trim(),
+        availability: window._availDates.slice().sort()
+      };
+
+      // save to StorageAPI
+      StorageAPI.updateUser(userObj.email, { profile: profile, name: profile.fullName });
+
+      saveMsg.textContent = 'Profile saved.';
+      // optional: create a sample notification that profile is complete
+      StorageAPI.addNotification({ userEmail: userObj.email, message: 'Your profile was updated.' });
+    });
+
+    // logout
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    });
+
+    // notifications UI
+    viewNotifsBtn.addEventListener('click', () => {
+      const nots = StorageAPI.getNotifications().filter(n => n.userEmail === userObj.email).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+      notifsList.innerHTML = '';
+      if (!nots.length) notifsList.innerHTML = '<div class="notif muted">No notifications</div>';
+      else {
+        for (const n of nots) {
+          const el = document.createElement('div');
+          el.className = 'notif';
+          el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="max-width:78%"><strong style="display:block; font-size:14px">${n.message}</strong><div class="muted" style="font-size:12px; margin-top:6px">${new Date(n.createdAt).toLocaleString()}</div></div><div><button data-id="${n.id}" style="background:none;border:1px solid rgba(148,163,184,0.08);padding:6px 8px;border-radius:8px;cursor:pointer">Mark read</button></div></div>`;
+          notifsList.appendChild(el);
+        }
+      }
+      notifsPanel.style.display = notifsPanel.style.display === 'none' ? 'block' : 'none';
+
+      // attach handlers
+      notifsList.querySelectorAll('button[data-id]').forEach(b => {
+        b.addEventListener('click', (ev) => {
+          const id = ev.currentTarget.getAttribute('data-id');
+          StorageAPI.markNotificationRead(id);
+          ev.currentTarget.textContent = 'Read';
+          ev.currentTarget.disabled = true;
+        });
+      });
+    });
+
+  </script>
+</body>
+</html>

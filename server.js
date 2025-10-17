@@ -1,0 +1,34 @@
+// server.js
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+
+const app = express();
+const PORT = 3000;
+
+// --- MIDDLEWARE ---
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public"))); // serve frontend files
+
+// --- FILE PATHS ---
+const dataDir = path.join(__dirname, "data");
+const eventsFile = path.join(dataDir, "events.json");
+const volunteersFile = path.join(dataDir, "volunteers.json");
+
+// --- ENSURE DATA FILES EXIST ---
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+if (!fs.existsSync(eventsFile)) fs.writeFileSync(eventsFile, "[]");
+if (!fs.existsSync(volunteersFile)) fs.writeFileSync(volunteersFile, "[]");
+
+// --- ROUTES ---
+const eventsRouter = require("./routes/events");
+const matchRouter = require("./routes/match");
+
+// Use the route files
+app.use("/api/events", eventsRouter);
+app.use("/api/match", matchRouter);
+
+// --- SERVER START ---
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});

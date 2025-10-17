@@ -1,0 +1,29 @@
+{
+  "name": "cosc4353-project-volunteer",
+  "version": "1.0.0",
+  "description": "Purpose: Allows volunteers and administrators to securely access the system.",
+  "main": "storage.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akhatani3/COSC4353-PROJECT-volunteer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akhatani3/COSC4353-PROJECT-volunteer/issues"
+  },
+  "homepage": "https://github.com/akhatani3/COSC4353-PROJECT-volunteer#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
+  }
+}
