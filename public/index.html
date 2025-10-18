@@ -288,79 +288,57 @@
     const form = document.getElementById('loginForm');
     const email = document.getElementById('email');
     const password = document.getElementById('password');
-    const emailError = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
     const showPw = document.getElementById('showPw');
     const formMessage = document.getElementById('formMessage');
-
+  
+    // Toggle password visibility (UI only)
     showPw.addEventListener('change', () => {
       password.type = showPw.checked ? 'text' : 'password';
     });
-
-    function validateEmail(value) {
-      // Simple RFC5322-ish email check
-      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
-    }
-
-    function clearErrors() {
-      emailError.textContent = '';
-      passwordError.textContent = '';
-      formMessage.textContent = '';
-    }
-
+  
+    // Submit login form
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      clearErrors();
-
-      let ok = true;
-      if (!email.value.trim()) {
-        emailError.textContent = 'Email is required.';
-        ok = false;
-      } else if (!validateEmail(email.value.trim())) {
-        emailError.textContent = 'Enter a valid email address.';
-        ok = false;
-      }
-
-      if (!password.value) {
-        passwordError.textContent = 'Password is required.';
-        ok = false;
-      } else if (password.value.length < 8) {
-        passwordError.textContent = 'Password must be at least 8 characters.';
-        ok = false;
-      }
-
-      if (!ok) return;
-
-      //  Now use StorageAPI
-      const user = StorageAPI.findUser(email.value.trim());
-
-      if (!user || user.password !== password.value) {
-        passwordError.textContent = 'Invalid email or password.';
-        return;
-      }
-
-      const profile = {
-        email: user.email,
-        name: user.name,
-        google: user.google || false,
-        role: user.role || 'user'
-      };
-
-      localStorage.setItem('currentUser', JSON.stringify(profile));
-
-      formMessage.textContent = 'Signed in! Redirecting to your profile…';
-      setTimeout(() => {
-        if (profile.role === 'admin') {
-          window.location.href = 'admin-events.html';
-        } else {
-          window.location.href = 'home.html';
+      formMessage.textContent = ''; // Clear previous messages
+  
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.value.trim(),
+          password: password.value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          formMessage.textContent = data.message || 'Invalid email or password.';
+          formMessage.style.color = 'var(--danger)';
+          return;
         }
-      }, 800);
-
+  
+        // Save user profile to localStorage
+        localStorage.setItem('currentUser', JSON.stringify(data.profile));
+        formMessage.textContent = 'Signed in! Redirecting…';
+        formMessage.style.color = 'var(--ok)';
+  
+        setTimeout(() => {
+          if (data.profile.role === 'admin') {
+            window.location.href = 'admin-events.html';
+          } else {
+            window.location.href = 'home.html';
+          }
+        }, 800);
+      })
+      .catch(err => {
+        console.error(err);
+        formMessage.textContent = 'An error occurred. Please try again later.';
+        formMessage.style.color = 'var(--danger)';
+      });
     });
-
-
   </script>
+  
+
   <!-- google sign in -->
   <script>
     function onGoogleSignIn(response) {

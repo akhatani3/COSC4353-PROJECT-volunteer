@@ -23,10 +23,14 @@ if (!fs.existsSync(volunteersFile)) fs.writeFileSync(volunteersFile, "[]");
 // --- ROUTES ---
 const eventsRouter = require("./routes/events");
 const matchRouter = require("./routes/match");
+const authRouter = require("./routes/auth");
+const { router: profileRouter } = require("./routes/profile");
 
 // Use the route files
 app.use("/api/events", eventsRouter);
 app.use("/api/match", matchRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/profile", profileRouter);
 
 // --- SERVER START ---
 app.listen(PORT, () => {

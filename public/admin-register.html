@@ -50,55 +50,48 @@
     const password = document.getElementById('password');
     const confirmPw = document.getElementById('confirm');
     const showPw = document.getElementById('showPw');
-    const emailErr = document.getElementById('emailErr');
-    const passwordErr = document.getElementById('passwordErr');
-    const confirmErr = document.getElementById('confirmErr');
     const formMsg = document.getElementById('formMsg');
-
+  
     showPw.addEventListener('change', () => {
       const type = showPw.checked ? 'text' : 'password';
-      password.type = type; confirmPw.type = type;
+      password.type = type;
+      confirmPw.type = type;
     });
-
-    function validateEmail(v) { return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(v); }
-    function clearErrors() { emailErr.textContent=''; passwordErr.textContent=''; confirmErr.textContent=''; formMsg.textContent=''; }
-
-    form.addEventListener('submit', e => {
-      e.preventDefault(); clearErrors();
-      let ok = true;
-      const emailVal = email.value.trim();
-
-      if (!emailVal) { emailErr.textContent = 'Email is required.'; ok = false; }
-      else if (!validateEmail(emailVal)) { emailErr.textContent = 'Invalid email format.'; ok = false; }
-
-      if (!password.value) { passwordErr.textContent = 'Password required.'; ok = false; }
-      else if (password.value.length < 8) { passwordErr.textContent = 'Must be at least 8 characters.'; ok = false; }
-
-      if (!confirmPw.value) { confirmErr.textContent = 'Confirm your password.'; ok = false; }
-      else if (confirmPw.value !== password.value) { confirmErr.textContent = 'Passwords do not match.'; ok = false; }
-
-      if (!ok) return;
-
-      // check existing user
-      const existing = StorageAPI.findUser(emailVal);
-      if (existing) { emailErr.textContent = 'Email already registered.'; return; }
-
-      // create admin object
-      const newAdmin = {
-        email: emailVal,
-        password: password.value,
-        name: 'Admin',
-        google: false,
-        role: 'admin',
-        profile: null
-      };
-
-      StorageAPI.addUser(newAdmin);
-      localStorage.setItem('currentUser', JSON.stringify(newAdmin));
-
-      formMsg.textContent = 'Admin account created! Redirecting…';
-      setTimeout(() => { window.location.href = 'event-management.html'; }, 1000);
+  
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formMsg.textContent = '';
+  
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.value.trim(),
+            password: password.value,
+            confirmPassword: confirmPw.value,
+            role: 'admin'  // important: send role as admin
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (!data.success) {
+          formMsg.textContent = data.message || 'Registration failed.';
+          return;
+        }
+  
+        // Save profile to localStorage and redirect
+        localStorage.setItem('currentUser', JSON.stringify(data.profile));
+        formMsg.textContent = 'Admin account created! Redirecting…';
+        setTimeout(() => { window.location.href = 'admin-events.html'; }, 1000);
+  
+      } catch (err) {
+        console.error(err);
+        formMsg.textContent = 'An error occurred. Please try again later.';
+      }
     });
   </script>
+  
 </body>
 </html>

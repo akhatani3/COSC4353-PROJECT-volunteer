@@ -215,98 +215,51 @@
     const email = document.getElementById('email');
     const password = document.getElementById('password');
     const confirmPw = document.getElementById('confirm');
-    const emailError = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
-    const confirmError = document.getElementById('confirmError');
     const showPw = document.getElementById('showPw');
     const formMessage = document.getElementById('formMessage');
-
+  
+    // Toggle password visibility
     showPw.addEventListener('change', () => {
       const type = showPw.checked ? 'text' : 'password';
       password.type = type;
       confirmPw.type = type;
     });
-
-    function validateEmail(value) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
-    }
-
-    function clearErrors() {
-      emailError.textContent = '';
-      passwordError.textContent = '';
-      confirmError.textContent = '';
-      formMessage.textContent = '';
-    }
-
+  
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      clearErrors();
-
-      let ok = true;
-
-      // Email
-      const emailVal = email.value.trim();
-      if (!emailVal) {
-        emailError.textContent = 'Email is required.';
-        ok = false;
-      } else if (!validateEmail(emailVal)) {
-        emailError.textContent = 'Enter a valid email address.';
-        ok = false;
-      }
-
-      // Password
-      if (!password.value) {
-        passwordError.textContent = 'Password is required.';
-        ok = false;
-      } else if (password.value.length < 8) {
-        passwordError.textContent = 'Password must be at least 8 characters.';
-        ok = false;
-      }
-
-      // Confirm
-      if (!confirmPw.value) {
-        confirmError.textContent = 'Please confirm your password.';
-        ok = false;
-      } else if (confirmPw.value !== password.value) {
-        confirmError.textContent = 'Passwords do not match.';
-        ok = false;
-      }
-
-      if (!ok) return;
-
-      // IF  success
-
-
-      // Check if user already exists
-      const existing = StorageAPI.findUser(emailVal);
-      if (existing) {
-        emailError.textContent = 'This email is already registered.';
-        return;
-      }
-
-      // Create user object
-      const newUser = {
-        email: emailVal,
-        password: password.value, 
-        name: emailVal.split('@')[0],
-        google: false,
-        role: 'user',
-        profile: null
-      };
-
-      // Save to storage
-      StorageAPI.addUser(newUser);
-
-      // Auto-login
-      localStorage.setItem('currentUser', JSON.stringify(newUser));
-
-      formMessage.textContent = 'Account created! Redirecting to profile…';
-      setTimeout(() => {
-        window.location.href = 'profile.html';
-      }, 900);
-
+      formMessage.textContent = '';
+  
+      // Send registration data to backend
+      fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.value.trim(),
+          password: password.value,
+          confirmPassword: confirmPw.value,
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          formMessage.textContent = data.message || 'Registration failed.';
+          return;
+        }
+  
+        // Save profile and redirect
+        localStorage.setItem('currentUser', JSON.stringify(data.profile));
+        formMessage.textContent = 'Account created! Redirecting…';
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 800);
+      })
+      .catch(err => {
+        console.error(err);
+        formMessage.textContent = 'An error occurred. Please try again later.';
+      });
     });
   </script>
+  
 </body>
 
 </html>
