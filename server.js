@@ -25,12 +25,16 @@ const eventsRouter = require("./routes/events");
 const matchRouter = require("./routes/match");
 const authRouter = require("./routes/auth");
 const { router: profileRouter } = require("./routes/profile");
+const notificationsRouter = require("./routes/notifications");
+const volunteerHistoryRouter = require("./routes/volunteerHistory");
 
 // Use the route files
 app.use("/api/events", eventsRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/volunteer-history", volunteerHistoryRouter);
 
 // --- SERVER START ---
 app.listen(PORT, () => {
