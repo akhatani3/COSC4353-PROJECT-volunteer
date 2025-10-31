@@ -10,7 +10,7 @@ const dataDir = path.join(__dirname, "..", "data");
 const storeFile = path.join(dataDir, "volunteerHistory.json");
 
 function ensureStore() {
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
   if (!fs.existsSync(storeFile)) fs.writeFileSync(storeFile, "[]");
 }
 function readAll() {
@@ -32,31 +32,28 @@ function requireFields(fields) {
   };
 }
 
-router.post(
-  "/",
-  requireFields(["userId", "eventId"]),
-  (req, res) => {
-    const { userId, eventId, role, hours, status, participationDate } = req.body;
-    if (hours !== undefined && (typeof hours !== "number" || hours < 0)) {
-      return res.status(400).json({ error: "hours must be a non-negative number" });
-    }
-    const list = readAll();
-    const rec = {
-      id: "h_" + randomUUID(),
-      userId,
-      eventId,
-      role: role || null,
-      hours: hours ?? 0,
-      status: status || "completed",
-      participationDate: participationDate || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    list.push(rec);
-    writeAll(list);
-    res.status(201).json(rec);
+router.post("/", requireFields(["userId", "eventId"]), (req, res) => {
+  const { userId, eventId, role, hours, status, participationDate } = req.body;
+  if (hours !== undefined && (typeof hours !== "number" || hours < 0)) {
+    return res.status(400).json({ error: "hours must be a non-negative number" });
   }
-);
+  const list = readAll();
+  const now = new Date().toISOString();
+  const rec = {
+    id: "h_" + randomUUID(),
+    userId,
+    eventId,
+    role: role || null,
+    hours: hours ?? 0,
+    status: status || "completed",
+    participationDate: participationDate || now,
+    createdAt: now,
+    updatedAt: now,
+  };
+  list.push(rec);
+  writeAll(list);
+  res.status(201).json(rec);
+});
 
 router.get("/", (req, res) => {
   const { userId, eventId } = req.query;

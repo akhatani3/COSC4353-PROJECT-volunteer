@@ -3,8 +3,12 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 
+// NEW: load env + mongo connector
+require("dotenv").config();
+const { connect } = require("./db/mongoose");
+
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // --- MIDDLEWARE ---
 app.use(express.json());
@@ -24,9 +28,9 @@ if (!fs.existsSync(volunteersFile)) fs.writeFileSync(volunteersFile, "[]");
 const eventsRouter = require("./routes/events");
 const matchRouter = require("./routes/match");
 const authRouter = require("./routes/auth");
-const { router: profileRouter } = require("./routes/profile");
+const { router: profileRouter } = require("./routes/profile"); 
 const notificationsRouter = require("./routes/notifications");
-const volunteerHistoryRouter = require("./routes/volunteerHistory");
+const volunteerHistoryRouter = require("./routes/volunteerHistory"); 
 
 // Use the route files
 app.use("/api/events", eventsRouter);
@@ -36,7 +40,14 @@ app.use("/api/profile", profileRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/volunteer-history", volunteerHistoryRouter);
 
-// --- SERVER START ---
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// Export app for tests
+module.exports = app;
+
+if (require.main === module) {
+  (async () => {
+    await connect(); 
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  })();
+}
