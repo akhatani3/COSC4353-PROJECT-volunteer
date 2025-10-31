@@ -4,381 +4,214 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin — Manage Events</title>
-  <link href="style.css" rel="stylesheet" type="text/css">
   <style>
     :root {
-      --bg: #f8fafc;
-      --fg: #0f172a;
-      --accent: #2563eb;
-      --card: #fff;
-      --shadow: rgba(0,0,0,0.1);
+      --bg: #0f172a; --card: #111827; --muted: #94a3b8; --text: #e5e7eb;
+      --accent: #6366f1; --accent-600: #4f46e5; --ring: rgba(99, 102, 241, 0.35);
+    }
+    [data-theme='light'] {
+      --bg: #f8fafc; --card: #fff; --text: #0f172a; --muted: #475569;
+      --accent: #2563eb; --accent-600: #1d4ed8;
     }
 
-    [data-theme="dark"] {
-      --bg: #0f172a;
-      --fg: #e2e8f0;
-      --card: #1e293b;
-      --shadow: rgba(255,255,255,0.05);
-    }
+    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      margin: 0;
-      min-height: 100vh;
-    }
+    header { background:var(--card); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(148,163,184,0.15); }
+    header h1 { margin:0; font-size:20px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:18px; font-size:14px; }
+    nav a:hover { color:var(--accent); }
+    .profile { display:flex; align-items:center; gap:10px; }
+    .profile img { width:38px; height:38px; border-radius:50%; border:2px solid var(--accent); object-fit:cover; }
 
-    /* Header bar */
-    header {
-      background: var(--card);
-      box-shadow: 0 2px 8px var(--shadow);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.8rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+    main { flex:1; padding:28px; display:flex; flex-direction:column; align-items:center; }
 
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
+    .form-card { background:var(--card); border:1px solid rgba(148,163,184,0.15); border-radius:16px; padding:30px; width:100%; max-width:700px; box-shadow:0 6px 18px rgba(0,0,0,0.3); margin-bottom:24px; }
+    .form-card h2 { margin-top:0; font-size:22px; margin-bottom:20px; }
 
-    .nav-left h1 {
-      font-size: 1.2rem;
-      margin: 0;
-    }
+    label { display:block; margin-bottom:6px; font-size:14px; color:var(--text); }
+    input, select, textarea, button { width:100%; padding:10px; margin-bottom:18px; border-radius:8px; border:1px solid rgba(148,163,184,0.2); background:var(--card); color:var(--text); font-size:14px; }
+    input:focus, select:focus, textarea:focus { outline:2px solid var(--accent); }
 
-    .nav-links a {
-      color: var(--fg);
-      text-decoration: none;
-      font-weight: 500;
-      margin-right: 1.2rem;
-      transition: 0.2s;
-    }
+    button { border:none; background:linear-gradient(180deg, var(--accent), var(--accent-600)); color:white; font-weight:600; cursor:pointer; font-size:16px; }
+    button:hover { opacity:0.9; }
 
-    .nav-links a:hover {
-      color: var(--accent);
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .profile-pic {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid var(--accent);
-    }
-
-    .greeting {
-      font-size: 0.95rem;
-      font-weight: 500;
-    }
-
-    .btn-logout {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 10px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .btn-logout:hover {
-      background: #1d4ed8;
-    }
-
-    /* Main container */
-    .container {
-      max-width: 900px;
-      margin: 2rem auto;
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 8px 25px var(--shadow);
-      padding: 2rem;
-    }
-
-    .field { margin-bottom: 1rem; }
-    .label { font-weight: 600; margin-bottom: 0.25rem; }
-
-    .input, .textarea, .select, .multiselect {
-      width: 100%;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
-      background: var(--bg);
-      color: var(--fg);
-    }
-
-    table {
-      width: 100%;
-      margin-top: 1.5rem;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #cbd5e1;
-      text-align: left;
-    }
-
-    th {
-      background: var(--accent);
-      color: white;
-    }
-
-    tr:hover {
-      background: rgba(37, 99, 235, 0.08);
-    }
+    table { width:100%; border-collapse:collapse; margin-top:16px; }
+    th, td { padding:10px; border-bottom:1px solid rgba(148,163,184,0.15); text-align:left; }
+    th { background:var(--accent); color:white; }
+    tr:hover { background:rgba(99,102,241,0.1); }
 
     .btn-edit, .btn-delete {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-weight: 600;
+      background:none; border:none; cursor:pointer; padding:5px 8px; border-radius:4px; font-weight:600;
     }
+    .btn-edit { color:var(--accent); }
+    .btn-delete { color:#ef4444; }
 
-    .btn-edit { color: #2563eb; }
-    .btn-delete { color: #dc2626; }
-
-    .theme-toggle {
-      background: none;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .theme-toggle:hover {
-      background: var(--accent);
-      color: #fff;
-    }
+    .theme-toggle { border:1px solid var(--accent); background:none; color:var(--accent); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:14px; }
+    .theme-toggle:hover { background:var(--accent); color:#fff; }
   </style>
 </head>
 <body>
   <header>
-    <div class="nav-left">
-      <h1>Volunteer Admin Panel</h1>
-      <nav class="nav-links">
-        <a href="volunteer-matching.html">Events</a>
-        <a href="volunteer-history.html">Volunteers</a>
-        <a href="profile.html">Profile</a>
-      </nav>
-    </div>
-    <div class="nav-right">
+    <h1>Volunteer Admin Panel</h1>
+    <nav>
+      <a href="admin-home.html">Home</a>
+      <a href="event.html">Create Event</a>
+      <a href="volunteer-history.html">Volunteers</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+    <div class="profile">
       <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
-      <span class="greeting" id="greeting"></span>
-      <img id="profilePic" class="profile-pic" src="" alt="Profile">
-      <button id="logoutBtn" class="btn-logout">Logout</button>
+      <span id="greeting"></span>
+      <img id="profilePic" src="" alt="Profile" />
+      <button id="logoutBtn" style="background:var(--accent);color:#fff;border:none;padding:6px 10px;border-radius:6px;">Logout</button>
     </div>
   </header>
 
-  <div class="container">
-    <h2>Manage Events</h2>
-    <form id="eventForm" novalidate>
-      <div class="field">
-        <div class="label">Event Name *</div>
-        <input type="text" id="eventName" class="input" required>
-        <div id="eventNameError" class="error"></div>
-      </div>
+  <main>
+    <div class="form-card">
+      <h2>Create / Update Event</h2>
+      <form id="eventForm">
+        <label>Event Name</label>
+        <input id="eventName" required />
 
-      <div class="field">
-        <div class="label">Description *</div>
-        <textarea id="description" class="textarea" rows="3" required></textarea>
-        <div id="descriptionError" class="error"></div>
-      </div>
+        <label>Description</label>
+        <textarea id="description" rows="3" required></textarea>
 
-      <div class="field">
-        <div class="label">Location *</div>
-        <input type="text" id="location" class="input" required>
-        <div id="locationError" class="error"></div>
-      </div>
+        <label>Location</label>
+        <textarea id="location" rows="2" required></textarea>
 
-      <div class="field">
-        <div class="label">Required Skills *</div>
-        <select id="reqSkills" class="multiselect" multiple required>
+        <label>Required Skills</label>
+        <select id="skills" multiple size="5" required>
+          <option value="organization">Organization</option>
+          <option value="communication">Communication</option>
           <option value="teaching">Teaching</option>
-          <option value="coding">Coding</option>
+          <option value="first-aid">First Aid</option>
           <option value="fundraising">Fundraising</option>
-          <option value="event_planning">Event Planning</option>
-          <option value="logistics">Logistics</option>
+          <option value="environmental">Environmental</option>
         </select>
-        <div id="reqSkillsError" class="error"></div>
-      </div>
 
-      <div class="field">
-        <div class="label">Urgency *</div>
-        <select id="urgency" class="select" required>
-          <option value="">-- Select urgency --</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
+        <label>Urgency</label>
+        <select id="urgency" required>
+          <option value="">Select urgency</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
         </select>
-        <div id="urgencyError" class="error"></div>
-      </div>
 
-      <div class="field">
-        <div class="label">Event Date *</div>
-        <input type="date" id="eventDate" class="input" required>
-        <div id="eventDateError" class="error"></div>
-      </div>
+        <label>Date</label>
+        <input type="date" id="date" required />
 
-      <div class="actions">
-        <button type="submit" class="btn-add btn-logout">Add / Update Event</button>
-      </div>
-      <div id="formMessage" style="margin-top:12px;"></div>
-    </form>
+        <button type="submit">Save Event</button>
+      </form>
+    </div>
 
-    <table id="eventsTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Date</th>
-          <th>Location</th>
-          <th>Skills</th>
-          <th>Urgency</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <div class="form-card">
+      <h2>All Events</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Date</th><th>Location</th><th>Skills</th><th>Urgency</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="eventTable"></tbody>
+      </table>
+    </div>
+  </main>
 
   <script>
-    // Theme toggle
+    // Theme handling
     function toggleTheme() {
       const html = document.documentElement;
-      const theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
+      const newTheme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
     }
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
 
-    // Access control
+    // Profile setup
     const profile = JSON.parse(localStorage.getItem('currentUser'));
     if (!profile || profile.role !== 'admin') {
       alert('Access denied. Admins only.');
-      window.location.href = 'index.html';
+      location.href = 'index.html';
     }
-
-    // Profile greeting
-    document.getElementById('greeting').textContent = `Hi, ${profile?.name || 'Admin'}`;
-    if (profile?.picture) {
-      document.getElementById('profilePic').src = profile.picture;
-    }
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    document.getElementById('greeting').textContent = `Hi, ${profile.name || 'Admin'}`;
+    document.getElementById('profilePic').src = profile.picture || './img/default-profile.png';
+    document.getElementById('logoutBtn').onclick = () => {
       localStorage.removeItem('currentUser');
-      window.location.href = 'index.html';
-    });
-
-    // Events handling (same logic)
-    const eventsKey = 'va_events';
-    const form = document.getElementById('eventForm');
-    const eventName = document.getElementById('eventName');
-    const description = document.getElementById('description');
-    const locationEl = document.getElementById('location');
-    const reqSkills = document.getElementById('reqSkills');
-    const urgency = document.getElementById('urgency');
-    const eventDate = document.getElementById('eventDate');
-    const formMessage = document.getElementById('formMessage');
-
-    const errs = {
-      eventName: document.getElementById('eventNameError'),
-      description: document.getElementById('descriptionError'),
-      location: document.getElementById('locationError'),
-      reqSkills: document.getElementById('reqSkillsError'),
-      urgency: document.getElementById('urgencyError'),
-      eventDate: document.getElementById('eventDateError')
+      location.href = 'index.html';
     };
 
-    function loadEvents() {
-      return JSON.parse(localStorage.getItem(eventsKey) || '[]');
-    }
-    function saveEvents(arr) {
-      localStorage.setItem(eventsKey, JSON.stringify(arr));
+    const table = document.getElementById('eventTable');
+    const form = document.getElementById('eventForm');
+
+    async function loadEvents() {
+      const res = await fetch('/api/events');
+      const events = await res.json();
+      renderTable(events);
     }
 
-    function renderTable() {
-      const tbody = document.querySelector('#eventsTable tbody');
-      tbody.innerHTML = '';
-      const arr = loadEvents();
-      arr.forEach((ev, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${ev.eventName}</td>
-          <td>${ev.eventDate}</td>
+    function renderTable(events) {
+      table.innerHTML = '';
+      events.forEach((ev, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${ev.name}</td>
+          <td>${ev.date}</td>
           <td>${ev.location}</td>
-          <td>${ev.reqSkills.join(', ')}</td>
+          <td>${ev.skillsRequired.join(', ')}</td>
           <td>${ev.urgency}</td>
           <td>
-            <button data-index="${idx}" class="btn-edit">Edit</button>
-            <button data-index="${idx}" class="btn-delete">Delete</button>
+            <button class="btn-edit" onclick="editEvent(${idx})">Edit</button>
+            <button class="btn-delete" onclick="deleteEvent('${ev._id || ev.id}')">Delete</button>
           </td>`;
-        tbody.appendChild(tr);
+        table.appendChild(row);
       });
-      document.querySelectorAll('.btn-edit').forEach(btn => btn.onclick = e => editEvent(+e.target.dataset.index));
-      document.querySelectorAll('.btn-delete').forEach(btn => btn.onclick = e => deleteEvent(+e.target.dataset.index));
+      window.allEvents = events; // store for editing
     }
 
-    function editEvent(i) {
-      const arr = loadEvents();
-      const ev = arr[i];
-      eventName.value = ev.eventName;
-      description.value = ev.description;
-      locationEl.value = ev.location;
-      urgency.value = ev.urgency;
-      eventDate.value = ev.eventDate;
-      for (let opt of reqSkills.options) opt.selected = ev.reqSkills.includes(opt.value);
-      form.dataset.editIndex = i;
+    async function deleteEvent(id) {
+      if (!confirm('Are you sure you want to delete this event?')) return;
+      await fetch(`/api/events/${id}`, { method: 'DELETE' });
+      loadEvents();
     }
 
-    function deleteEvent(i) {
-      const arr = loadEvents();
-      arr.splice(i, 1);
-      saveEvents(arr);
-      renderTable();
+    function editEvent(index) {
+      const ev = window.allEvents[index];
+      form.dataset.editId = ev._id || ev.id;
+      form.eventName.value = ev.name;
+      form.description.value = ev.details;
+      form.location.value = ev.location;
+      form.urgency.value = ev.urgency;
+      form.date.value = ev.date;
+      for (let opt of form.skills.options)
+        opt.selected = ev.skillsRequired.includes(opt.value);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    form.onsubmit = e => {
+    form.onsubmit = async e => {
       e.preventDefault();
-      Object.values(errs).forEach(e => e.textContent = '');
-      formMessage.textContent = '';
-
-      const sel = Array.from(reqSkills.selectedOptions).map(o => o.value);
-      if (!eventName.value.trim() || !description.value.trim() || !locationEl.value.trim() || !sel.length || !urgency.value || !eventDate.value) {
-        formMessage.textContent = 'Please fill all required fields.';
-        return;
-      }
-
-      const arr = loadEvents();
-      const ev = { eventName: eventName.value.trim(), description: description.value.trim(), location: locationEl.value.trim(), reqSkills: sel, urgency: urgency.value, eventDate: eventDate.value };
-      if (form.dataset.editIndex) arr[form.dataset.editIndex] = ev; else arr.push(ev);
-      delete form.dataset.editIndex;
-      saveEvents(arr);
-      renderTable();
+      const skills = Array.from(form.skills.selectedOptions).map(o => o.value);
+      const eventData = {
+        name: form.eventName.value,
+        details: form.description.value,
+        location: form.location.value,
+        skillsRequired: skills,
+        urgency: form.urgency.value,
+        date: form.date.value
+      };
+      const method = form.dataset.editId ? 'PUT' : 'POST';
+      const url = form.dataset.editId ? `/api/events/${form.dataset.editId}` : '/api/events/add';
+      await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData)
+      });
+      delete form.dataset.editId;
       form.reset();
-      formMessage.style.color = '#22c55e';
-      formMessage.textContent = 'Event saved successfully.';
+      loadEvents();
     };
 
-    renderTable();
+    loadEvents();
   </script>
 </body>
 </html>
