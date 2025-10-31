@@ -118,4 +118,5 @@ Enables volunteers to track hours and contributions, and helps admins monitor en
 
 Design: Tabular layout for clarity, with consistent styling to match other pages.
 
-# default admin email: testadmin@gmail.com  //  password: adminadmin
+Data Base:
+Utilizing Mongo DB to store events, events names, details, priority, volunteers in each event, events for each volunteer, adminstrators profiles, and user profiles (email, name, address, zip code, state, and registered events).
