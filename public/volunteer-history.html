@@ -1,87 +1,200 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Volunteer History</title>
-   <link href="style.css" rel="stylesheet" type="text/css">
-  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  <meta charset="UTF-8" />
+  <title>Volunteer Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0f172a; --card: #111827; --muted: #94a3b8; --text: #e5e7eb;
+      --accent: #6366f1; --accent-600: #4f46e5; --ring: rgba(99, 102, 241, 0.35);
+    }
+    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh; }
+    header {
+      background: var(--card);
+      padding:16px 28px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid rgba(148,163,184,0.15);
+    }
+    header .left { display:flex; align-items:center; gap:12px; }
+    header img.profile-pic {
+      width:42px; height:42px; border-radius:50%;
+      border:2px solid var(--accent);
+      object-fit:cover;
+    }
+    header h1 { margin:0; font-size:20px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:18px; font-size:14px; }
+    nav a:hover { color:var(--accent); }
 
-<script>
-function toggleTheme() {
-  const html = document.documentElement;
-  if (html.getAttribute('data-theme') === 'dark') {
-    html.setAttribute('data-theme', 'light');
-    localStorage.setItem('theme', 'light');
-  } else {
-    html.setAttribute('data-theme', 'dark');
-    localStorage.setItem('theme', 'dark');
-  }
-}
+    main { flex:1; padding:28px; display:flex; flex-direction:column; align-items:center; }
 
-// Load saved theme
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-  document.documentElement.setAttribute('data-theme', savedTheme);
-}
-</script>
+    .form-card {
+      background: var(--card);
+      border:1px solid rgba(148,163,184,0.15);
+      border-radius:16px;
+      padding:30px;
+      width:100%;
+      max-width:550px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.3);
+      margin-bottom:20px;
+    }
 
+    input, button { width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid rgba(148,163,184,0.2); background:#1e293b; color:var(--text); }
+    input:focus { outline:2px solid var(--accent); }
+    button {
+      border:none;
+      background:linear-gradient(180deg, var(--accent), var(--accent-600));
+      color:white; font-weight:600; cursor:pointer; font-size:16px;
+    }
+    button:hover { opacity:0.9; }
+
+    .event-list { margin-top:25px; width:100%; max-width:650px; }
+    .event-item {
+      background:#1f2937; border-radius:12px;
+      border:1px solid rgba(148,163,184,0.25);
+      padding:16px; margin-bottom:14px;
+      transition:background 0.2s;
+    }
+    .event-item:hover { background:#273244; }
+    .event-item h3 { margin:0 0 8px; }
+    .event-item button {
+      width:auto; margin-top:8px; padding:8px 14px;
+      font-size:14px;
+    }
+
+    /* Modal */
+    .modal {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+      justify-content:center; align-items:center; z-index:50;
+    }
+    .modal.active { display:flex; }
+    .modal-content {
+      background:var(--card); padding:24px; border-radius:16px;
+      width:90%; max-width:480px; position:relative;
+    }
+    .modal-content h2 { margin-top:0; }
+    .modal-content .close {
+      position:absolute; top:12px; right:16px;
+      font-size:20px; cursor:pointer; color:var(--muted);
+    }
+    .modal-content .close:hover { color:var(--accent); }
+  </style>
 </head>
 <body>
-  <h1>Volunteer History</h1>
-  <table id="historyTable">
-    <thead>
-      <tr>
-        <th>Volunteer</th>
-        <th>Event</th>
-        <th>Date</th>
-        <th>Location</th>
-        <th>Skills</th>
-        <th>Urgency</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <header>
+    <div class="left">
+      <img class="profile-pic" id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
+      <h1 id="greeting">Welcome, Volunteer</h1>
+    </div>
+    <nav>
+      <a href="admin-events.html">Admin</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <h2>Your Profile</h2>
+      <form id="profileForm">
+        <input id="userEmail" placeholder="Email" />
+        <input id="fullName" placeholder="Full Name" />
+        <input id="state" placeholder="State" />
+        <input id="zipcode" placeholder="Zipcode" />
+        <input id="skills" placeholder="Skills (comma separated)" />
+        <button type="submit">Save Profile</button>
+      </form>
+      <p id="status"></p>
+    </div>
+
+    <div class="form-card">
+      <h2>Available Events</h2>
+      <div id="eventList" class="event-list"></div>
+    </div>
+  </main>
+
+  <!-- Event Details Modal -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Urgency:</strong> <span id="modalUrgency"></span></p>
+      <p><strong>Skills Required:</strong> <span id="modalSkills"></span></p>
+      <p><strong>Details:</strong> <span id="modalDetails"></span></p>
+    </div>
+  </div>
 
   <script>
-    const profile = JSON.parse(localStorage.getItem('currentUser'));
-    if (!profile) {
-      alert('Not logged in.');
-      window.location.href = 'index.html';
+    const profileForm = document.getElementById('profileForm');
+    const statusEl = document.getElementById('status');
+    const greeting = document.getElementById('greeting');
+    const profilePic = document.getElementById('profilePic');
+
+    const eventList = document.getElementById('eventList');
+    const modal = document.getElementById('eventModal');
+    const closeModal = document.getElementById('closeModal');
+
+    // === Profile ===
+    profileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('fullName').value;
+      greeting.textContent = `Welcome, ${name || 'Volunteer'}`;
+      statusEl.textContent = "✅ Profile saved successfully!";
+      localStorage.setItem('profile', JSON.stringify({
+        email: document.getElementById('userEmail').value,
+        fullName: name,
+        state: document.getElementById('state').value,
+        zipcode: document.getElementById('zipcode').value,
+        skills: document.getElementById('skills').value
+      }));
+    });
+
+    // Load saved profile
+    const savedProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+    if (savedProfile.fullName) {
+      document.getElementById('userEmail').value = savedProfile.email || '';
+      document.getElementById('fullName').value = savedProfile.fullName || '';
+      document.getElementById('state').value = savedProfile.state || '';
+      document.getElementById('zipcode').value = savedProfile.zipcode || '';
+      document.getElementById('skills').value = savedProfile.skills || '';
+      greeting.textContent = `Welcome, ${savedProfile.fullName}`;
     }
 
-    const historyKey = 'va_history';
-    function getHistory() {
-      return JSON.parse(localStorage.getItem(historyKey) || '[]');
-    }
-
-    function renderHistory() {
-      const tbody = document.querySelector('#historyTable tbody');
-      tbody.innerHTML = '';
-
-      let records = getHistory();
-      if (profile.role !== 'admin') {
-        // Volunteers see only their own history
-        records = records.filter(r => r.volunteer === profile.email);
-      }
-
-      records.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.volunteer}</td>
-          <td>${r.eventName}</td>
-          <td>${r.eventDate}</td>
-          <td>${r.location}</td>
-          <td>${r.requiredSkills.join(', ')}</td>
-          <td>${r.urgency}</td>
-          <td class="status ${r.status}">${r.status}</td>
+    // === Load Events from JSON API ===
+    async function loadEvents() {
+      const res = await fetch('/api/events');
+      const events = await res.json();
+      eventList.innerHTML = '';
+      events.forEach(event => {
+        const div = document.createElement('div');
+        div.className = 'event-item';
+        div.innerHTML = `
+          <h3>${event.name}</h3>
+          <p>${event.date} — ${event.location}</p>
+          <button>View Details</button>
         `;
-        tbody.appendChild(tr);
+        div.querySelector('button').addEventListener('click', () => showModal(event));
+        eventList.appendChild(div);
       });
     }
 
-    renderHistory();
+    function showModal(event) {
+      modal.classList.add('active');
+      document.getElementById('modalTitle').textContent = event.name;
+      document.getElementById('modalDate').textContent = event.date;
+      document.getElementById('modalLocation').textContent = event.location;
+      document.getElementById('modalUrgency').textContent = event.urgency;
+      document.getElementById('modalSkills').textContent = event.skillsRequired.join(', ');
+      document.getElementById('modalDetails').textContent = event.details;
+    }
+
+    closeModal.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+    loadEvents(); // initial load
   </script>
 </body>
 </html>
