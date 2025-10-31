@@ -1,58 +1,216 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin — Manage Events</title>
-   <link href="style.css" rel="stylesheet" type="text/css">
-   <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --fg: #0f172a;
+      --accent: #2563eb;
+      --card: #fff;
+      --shadow: rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --fg: #e2e8f0;
+      --card: #1e293b;
+      --shadow: rgba(255,255,255,0.05);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    /* Header bar */
+    header {
+      background: var(--card);
+      box-shadow: 0 2px 8px var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-left h1 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .nav-links a {
+      color: var(--fg);
+      text-decoration: none;
+      font-weight: 500;
+      margin-right: 1.2rem;
+      transition: 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .profile-pic {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+    }
+
+    .greeting {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: #1d4ed8;
+    }
+
+    /* Main container */
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 8px 25px var(--shadow);
+      padding: 2rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+    .label { font-weight: 600; margin-bottom: 0.25rem; }
+
+    .input, .textarea, .select, .multiselect {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1.5rem;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #cbd5e1;
+      text-align: left;
+    }
+
+    th {
+      background: var(--accent);
+      color: white;
+    }
+
+    tr:hover {
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    .btn-edit, .btn-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .btn-edit { color: #2563eb; }
+    .btn-delete { color: #dc2626; }
+
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .theme-toggle:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
 </head>
-
-
-
-<script>
-function toggleTheme() {
-  const html = document.documentElement;
-  if (html.getAttribute('data-theme') === 'dark') {
-    html.setAttribute('data-theme', 'light');
-    localStorage.setItem('theme', 'light');
-  } else {
-    html.setAttribute('data-theme', 'dark');
-    localStorage.setItem('theme', 'dark');
-  }
-}
-
-// Load saved theme
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-  document.documentElement.setAttribute('data-theme', savedTheme);
-}
-</script>
-
-
 <body>
+  <header>
+    <div class="nav-left">
+      <h1>Volunteer Admin Panel</h1>
+      <nav class="nav-links">
+        <a href="volunteer-matching.html">Events</a>
+        <a href="volunteer-history.html">Volunteers</a>
+        <a href="profile.html">Profile</a>
+      </nav>
+    </div>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+      <span class="greeting" id="greeting"></span>
+      <img id="profilePic" class="profile-pic" src="" alt="Profile">
+      <button id="logoutBtn" class="btn-logout">Logout</button>
+    </div>
+  </header>
+
   <div class="container">
-    <h1>Admin: Event Management <button id="logoutBtn" class="btn-logout">Logout</button></h1>
+    <h2>Manage Events</h2>
     <form id="eventForm" novalidate>
       <div class="field">
         <div class="label">Event Name *</div>
-        <input type="text" id="eventName" name="eventName" class="input" maxlength="100" required />
+        <input type="text" id="eventName" class="input" required>
         <div id="eventNameError" class="error"></div>
       </div>
+
       <div class="field">
         <div class="label">Description *</div>
-        <textarea id="description" name="description" class="textarea" rows="3" required></textarea>
+        <textarea id="description" class="textarea" rows="3" required></textarea>
         <div id="descriptionError" class="error"></div>
       </div>
+
       <div class="field">
         <div class="label">Location *</div>
-        <input type="text" id="location" name="location" class="input" required />
+        <input type="text" id="location" class="input" required>
         <div id="locationError" class="error"></div>
       </div>
+
       <div class="field">
-        <div class="label">Required Skills (multiple) *</div>
-        <select id="reqSkills" name="reqSkills" class="multiselect" multiple required>
+        <div class="label">Required Skills *</div>
+        <select id="reqSkills" class="multiselect" multiple required>
           <option value="teaching">Teaching</option>
           <option value="coding">Coding</option>
           <option value="fundraising">Fundraising</option>
@@ -61,9 +219,10 @@ if (savedTheme) {
         </select>
         <div id="reqSkillsError" class="error"></div>
       </div>
+
       <div class="field">
         <div class="label">Urgency *</div>
-        <select id="urgency" name="urgency" class="select" required>
+        <select id="urgency" class="select" required>
           <option value="">-- Select urgency --</option>
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>
@@ -71,15 +230,17 @@ if (savedTheme) {
         </select>
         <div id="urgencyError" class="error"></div>
       </div>
+
       <div class="field">
         <div class="label">Event Date *</div>
-        <input type="date" id="eventDate" name="eventDate" class="input" required />
+        <input type="date" id="eventDate" class="input" required>
         <div id="eventDateError" class="error"></div>
       </div>
+
       <div class="actions">
-        <button type="submit" class="btn-add">Add / Update Event</button>
+        <button type="submit" class="btn-add btn-logout">Add / Update Event</button>
       </div>
-      <div id="formMessage" class="error" style="margin-top:12px;"></div>
+      <div id="formMessage" style="margin-top:12px;"></div>
     </form>
 
     <table id="eventsTable">
@@ -98,18 +259,37 @@ if (savedTheme) {
   </div>
 
   <script>
-    // Access control: only admins
-    // Access control: only admins
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    }
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Access control
     const profile = JSON.parse(localStorage.getItem('currentUser'));
     if (!profile || profile.role !== 'admin') {
       alert('Access denied. Admins only.');
       window.location.href = 'index.html';
     }
 
+    // Profile greeting
+    document.getElementById('greeting').textContent = `Hi, ${profile?.name || 'Admin'}`;
+    if (profile?.picture) {
+      document.getElementById('profilePic').src = profile.picture;
+    }
 
-    // event storage key
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    });
+
+    // Events handling (same logic)
     const eventsKey = 'va_events';
-
     const form = document.getElementById('eventForm');
     const eventName = document.getElementById('eventName');
     const description = document.getElementById('description');
@@ -129,8 +309,7 @@ if (savedTheme) {
     };
 
     function loadEvents() {
-      const arr = JSON.parse(localStorage.getItem(eventsKey) || '[]');
-      return arr;
+      return JSON.parse(localStorage.getItem(eventsKey) || '[]');
     }
     function saveEvents(arr) {
       localStorage.setItem(eventsKey, JSON.stringify(arr));
@@ -151,119 +330,55 @@ if (savedTheme) {
           <td>
             <button data-index="${idx}" class="btn-edit">Edit</button>
             <button data-index="${idx}" class="btn-delete">Delete</button>
-          </td>
-        `;
+          </td>`;
         tbody.appendChild(tr);
       });
-      // attach handlers
-      document.querySelectorAll('.btn-edit').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const i = Number(e.target.dataset.index);
-          editEvent(i);
-        });
-      });
-      document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const i = Number(e.target.dataset.index);
-          deleteEvent(i);
-        });
-      });
+      document.querySelectorAll('.btn-edit').forEach(btn => btn.onclick = e => editEvent(+e.target.dataset.index));
+      document.querySelectorAll('.btn-delete').forEach(btn => btn.onclick = e => deleteEvent(+e.target.dataset.index));
     }
 
-    function editEvent(index) {
+    function editEvent(i) {
       const arr = loadEvents();
-      const ev = arr[index];
+      const ev = arr[i];
       eventName.value = ev.eventName;
       description.value = ev.description;
       locationEl.value = ev.location;
       urgency.value = ev.urgency;
       eventDate.value = ev.eventDate;
-      // skills
-      for (let opt of reqSkills.options) {
-        opt.selected = ev.reqSkills.includes(opt.value);
-      }
-      // store a hidden index in form
-      form.dataset.editIndex = index;
+      for (let opt of reqSkills.options) opt.selected = ev.reqSkills.includes(opt.value);
+      form.dataset.editIndex = i;
     }
 
-    function deleteEvent(index) {
+    function deleteEvent(i) {
       const arr = loadEvents();
-      arr.splice(index, 1);
+      arr.splice(i, 1);
       saveEvents(arr);
       renderTable();
     }
 
-    function clearErrors() {
-      Object.values(errs).forEach(el => el.textContent = '');
-      formMessage.textContent = '';
-    }
-
-    form.addEventListener('submit', e => {
+    form.onsubmit = e => {
       e.preventDefault();
-      clearErrors();
+      Object.values(errs).forEach(e => e.textContent = '');
+      formMessage.textContent = '';
 
-      let ok = true;
-      if (!eventName.value.trim()) {
-        errs.eventName.textContent = 'Name is required.';
-        ok = false;
-      }
-      if (!description.value.trim()) {
-        errs.description.textContent = 'Description is required.';
-        ok = false;
-      }
-      if (!locationEl.value.trim()) {
-        errs.location.textContent = 'Location is required.';
-        ok = false;
-      }
       const sel = Array.from(reqSkills.selectedOptions).map(o => o.value);
-      if (sel.length === 0) {
-        errs.reqSkills.textContent = 'Select required skills.';
-        ok = false;
+      if (!eventName.value.trim() || !description.value.trim() || !locationEl.value.trim() || !sel.length || !urgency.value || !eventDate.value) {
+        formMessage.textContent = 'Please fill all required fields.';
+        return;
       }
-      if (!urgency.value) {
-        errs.urgency.textContent = 'Select urgency.';
-        ok = false;
-      }
-      if (!eventDate.value) {
-        errs.eventDate.textContent = 'Date is required.';
-        ok = false;
-      }
-
-      if (!ok) return;
 
       const arr = loadEvents();
-      const newEvent = {
-        eventName: eventName.value.trim(),
-        description: description.value.trim(),
-        location: locationEl.value.trim(),
-        reqSkills: sel,
-        urgency: urgency.value,
-        eventDate: eventDate.value
-      };
-
-      if (form.dataset.editIndex != null) {
-        // updating existing
-        arr[form.dataset.editIndex] = newEvent;
-        delete form.dataset.editIndex;
-      } else {
-        // new
-        arr.push(newEvent);
-      }
+      const ev = { eventName: eventName.value.trim(), description: description.value.trim(), location: locationEl.value.trim(), reqSkills: sel, urgency: urgency.value, eventDate: eventDate.value };
+      if (form.dataset.editIndex) arr[form.dataset.editIndex] = ev; else arr.push(ev);
+      delete form.dataset.editIndex;
       saveEvents(arr);
       renderTable();
       form.reset();
       formMessage.style.color = '#22c55e';
-      formMessage.textContent = 'Event saved.';
-    });
+      formMessage.textContent = 'Event saved successfully.';
+    };
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'index.html';
-    });
-
-    // initial
     renderTable();
   </script>
 </body>
-
 </html>
