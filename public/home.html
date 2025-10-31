@@ -4,32 +4,35 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Volunteer Home</title>
-      <link href="style.css" rel="stylesheet" type="text/css">
+  <link href="style.css" rel="stylesheet" type="text/css">
+
   <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
 
-<script>
-function toggleTheme() {
-  const html = document.documentElement;
-  if (html.getAttribute('data-theme') === 'dark') {
-    html.setAttribute('data-theme', 'light');
-    localStorage.setItem('theme', 'light');
-  } else {
-    html.setAttribute('data-theme', 'dark');
-    localStorage.setItem('theme', 'dark');
+  <script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    if (html.getAttribute('data-theme') === 'dark') {
+      html.setAttribute('data-theme', 'light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      html.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    }
   }
-}
 
-// Load saved theme
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-  document.documentElement.setAttribute('data-theme', savedTheme);
-}
-</script>
-
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
 </head>
+
 <body>
   <header>
-    <h1>Volunteer Home</h1>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <img id="profilePic" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" 
+           alt="Profile Picture" class="profile-pic">
+      <h1>Welcome, <span id="greetName">Volunteer</span>!</h1>
+    </div>
+
     <div style="display:flex;align-items:center;gap:16px;">
       <div class="notif-bell" id="notifBell" data-count="0">🔔</div>
       <nav>
@@ -37,6 +40,7 @@ if (savedTheme) {
         <button id="logoutBtn">Logout</button>
       </nav>
     </div>
+
     <div class="notif-panel" id="notifPanel">
       <ul id="notifList"></ul>
     </div>
@@ -58,6 +62,19 @@ if (savedTheme) {
     <tbody></tbody>
   </table>
 
+  <!-- 🌟 Event Details Modal -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalEventName"></h2>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Required Skills:</strong> <span id="modalSkills"></span></p>
+      <p><strong>Urgency:</strong> <span id="modalUrgency"></span></p>
+      <button id="joinBtnModal">Join Event</button>
+    </div>
+  </div>
+
   <script>
     const profile = JSON.parse(localStorage.getItem('currentUser'));
     if (!profile) {
@@ -69,7 +86,11 @@ if (savedTheme) {
       window.location.href = 'event-management.html';
     }
 
-    const eventsKey = 'va_events'; // must match admin's save key
+    // Set profile info
+    document.getElementById('greetName').textContent = profile.name || 'Volunteer';
+    if (profile.profilePic) document.getElementById('profilePic').src = profile.profilePic;
+
+    const eventsKey = 'va_events';
     const historyKey = 'va_history';
     const notifKey = 'va_notifications_' + profile.email;
     const msg = document.getElementById('message');
@@ -78,22 +99,18 @@ if (savedTheme) {
     const notifList = document.getElementById('notifList');
     const logoutBtn = document.getElementById('logoutBtn');
 
+    // Modal elements
+    const modal = document.getElementById('eventModal');
+    const modalClose = modal.querySelector('.close');
+    const joinBtnModal = document.getElementById('joinBtnModal');
+    let currentEvent = null;
+
     // Helpers
-    function getEvents() {
-      return JSON.parse(localStorage.getItem(eventsKey) || '[]');
-    }
-    function getHistory() {
-      return JSON.parse(localStorage.getItem(historyKey) || '[]');
-    }
-    function saveHistory(arr) {
-      localStorage.setItem(historyKey, JSON.stringify(arr));
-    }
-    function getNotifs() {
-      return JSON.parse(localStorage.getItem(notifKey) || '[]');
-    }
-    function saveNotifs(arr) {
-      localStorage.setItem(notifKey, JSON.stringify(arr));
-    }
+    const getEvents = () => JSON.parse(localStorage.getItem(eventsKey) || '[]');
+    const getHistory = () => JSON.parse(localStorage.getItem(historyKey) || '[]');
+    const saveHistory = arr => localStorage.setItem(historyKey, JSON.stringify(arr));
+    const getNotifs = () => JSON.parse(localStorage.getItem(notifKey) || '[]');
+    const saveNotifs = arr => localStorage.setItem(notifKey, JSON.stringify(arr));
 
     // Render events
     function renderEvents() {
@@ -116,7 +133,7 @@ if (savedTheme) {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${ev.eventName}</td>
+          <td><a href="#" class="event-link" data-evt='${JSON.stringify(ev)}'>${ev.eventName}</a></td>
           <td>${ev.eventDate}</td>
           <td>${ev.location}</td>
           <td>${ev.reqSkills.join(', ')}</td>
@@ -136,6 +153,14 @@ if (savedTheme) {
           joinEvent(ev);
         });
       });
+
+      tbody.querySelectorAll('.event-link').forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const ev = JSON.parse(e.target.dataset.evt);
+          openModal(ev);
+        });
+      });
     }
 
     // Join event
@@ -152,7 +177,7 @@ if (savedTheme) {
       });
       saveHistory(history);
 
-      // Add notification
+      // Notification
       const notifs = getNotifs();
       notifs.unshift({
         message: `You joined "${ev.eventName}" (${ev.eventDate})`,
@@ -165,9 +190,10 @@ if (savedTheme) {
 
       renderEvents();
       renderNotifs();
+      modal.style.display = 'none';
     }
 
-    // Render notifications
+    // Notifications
     function renderNotifs() {
       const notifs = getNotifs();
       notifList.innerHTML = '';
@@ -187,6 +213,21 @@ if (savedTheme) {
       localStorage.removeItem('currentUser');
       window.location.href = 'index.html';
     });
+
+    // Modal functions
+    function openModal(ev) {
+      currentEvent = ev;
+      document.getElementById('modalEventName').textContent = ev.eventName;
+      document.getElementById('modalDate').textContent = ev.eventDate;
+      document.getElementById('modalLocation').textContent = ev.location;
+      document.getElementById('modalSkills').textContent = ev.reqSkills.join(', ');
+      document.getElementById('modalUrgency').textContent = ev.urgency;
+      modal.style.display = 'flex';
+    }
+
+    modalClose.onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    joinBtnModal.onclick = () => { if (currentEvent) joinEvent(currentEvent); };
 
     // Init
     renderEvents();
