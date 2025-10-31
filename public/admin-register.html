@@ -52,6 +52,7 @@
     const showPw = document.getElementById('showPw');
     const formMsg = document.getElementById('formMsg');
   
+    // Toggle password visibility
     showPw.addEventListener('change', () => {
       const type = showPw.checked ? 'text' : 'password';
       password.type = type;
@@ -62,6 +63,13 @@
       e.preventDefault();
       formMsg.textContent = '';
   
+      // Validate passwords match before sending
+      if (password.value !== confirmPw.value) {
+        formMsg.textContent = "Passwords do not match.";
+        formMsg.style.color = 'var(--danger)';
+        return;
+      }
+  
       try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
@@ -69,8 +77,8 @@
           body: JSON.stringify({
             email: email.value.trim(),
             password: password.value,
-            confirmPassword: confirmPw.value,
-            role: 'admin'  // important: send role as admin
+            confirm: confirmPw.value,
+            role: 'admin' // force role as admin
           })
         });
   
@@ -78,20 +86,27 @@
   
         if (!data.success) {
           formMsg.textContent = data.message || 'Registration failed.';
+          formMsg.style.color = 'var(--danger)';
           return;
         }
   
-        // Save profile to localStorage and redirect
+        // Save profile to localStorage
         localStorage.setItem('currentUser', JSON.stringify(data.profile));
         formMsg.textContent = 'Admin account created! Redirecting…';
-        setTimeout(() => { window.location.href = 'admin-events.html'; }, 1000);
+        formMsg.style.color = 'var(--ok)';
+  
+        setTimeout(() => {
+          window.location.href = 'admin-events.html';
+        }, 1000);
   
       } catch (err) {
         console.error(err);
         formMsg.textContent = 'An error occurred. Please try again later.';
+        formMsg.style.color = 'var(--danger)';
       }
     });
   </script>
+  
   
 </body>
 </html>

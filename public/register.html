@@ -225,40 +225,54 @@
       confirmPw.type = type;
     });
   
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       formMessage.textContent = '';
   
-      // Send registration data to backend
-      fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.value.trim(),
-          password: password.value,
-          confirmPassword: confirmPw.value,
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
+      // Basic client-side validation
+      if (password.value !== confirmPw.value) {
+        formMessage.textContent = 'Passwords do not match.';
+        formMessage.style.color = 'var(--danger)';
+        return;
+      }
+  
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.value.trim(),
+            password: password.value,
+            confirm: confirmPw.value,
+            role: 'user' // all registrations from this form are users
+          })
+        });
+  
+        const data = await res.json();
+  
         if (!data.success) {
           formMessage.textContent = data.message || 'Registration failed.';
+          formMessage.style.color = 'var(--danger)';
           return;
         }
   
         // Save profile and redirect
         localStorage.setItem('currentUser', JSON.stringify(data.profile));
         formMessage.textContent = 'Account created! Redirecting…';
+        formMessage.style.color = 'var(--ok)';
+  
         setTimeout(() => {
           window.location.href = 'home.html';
         }, 800);
-      })
-      .catch(err => {
+  
+      } catch (err) {
         console.error(err);
         formMessage.textContent = 'An error occurred. Please try again later.';
-      });
+        formMessage.style.color = 'var(--danger)';
+      }
     });
   </script>
+  
   
 </body>
 
