@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer App — Event Management</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #111827; --muted: #94a3b8; --text: #e5e7eb;
+      --accent: #6366f1; --accent-600: #4f46e5; --ring: rgba(99, 102, 241, 0.35);
+    }
+    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh; }
+    header { background: var(--card); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(148,163,184,0.15); }
+    header h1 { margin:0; font-size:20px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:18px; font-size:14px; }
+    nav a:hover { color:var(--accent); }
+    main { flex:1; padding:28px; display:flex; justify-content:center; align-items:flex-start; flex-direction:column; }
+    .form-card { background: var(--card); border:1px solid rgba(148,163,184,0.15); border-radius:16px; padding:30px; width:100%; max-width:550px; box-shadow:0 6px 18px rgba(0,0,0,0.3); margin-bottom:20px; }
+    .form-card h2 { margin-top:0; font-size:22px; margin-bottom:20px; }
+    label { display:block; margin-bottom:6px; font-size:14px; color:var(--text); }
+    input, select, textarea, button { width:100%; padding:10px; margin-bottom:18px; border-radius:8px; border:1px solid rgba(148,163,184,0.2); background:var(--card); color:var(--text); font-size:14px; }
+    input:focus, select:focus, textarea:focus { outline:2px solid var(--accent); }
+    button { border:none; background:linear-gradient(180deg, var(--accent), var(--accent-600)); color:white; font-weight:600; cursor:pointer; font-size:16px; }
+    button:hover { opacity:0.9; }
+    .event-list { margin-top:20px; }
+    .event-item { padding:12px; border:1px solid rgba(148,163,184,0.2); border-radius:10px; margin-bottom:10px; background: #1f2937; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Event Management</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="event.html">Events</a>
+      <a href="register.html">Register</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <h2>Create Event</h2>
+      <form id="eventForm">
+        <label for="eventName">Event Name</label>
+        <input type="text" id="eventName" name="eventName" required>
+
+        <label for="description">Event Description</label>
+        <textarea id="description" name="description" rows="3" required></textarea>
+
+        <label for="location">Location</label>
+        <textarea id="location" name="location" rows="2" required></textarea>
+
+        <label for="skills">Required Skills</label>
+        <select id="skills" name="skills" multiple size="4" required>
+          <option value="organization">Organization</option>
+          <option value="communication">Communication</option>
+          <option value="teaching">Teaching</option>
+          <option value="first-aid">First Aid</option>
+          <option value="fundraising">Fundraising</option>
+          <option value="environmental">Environmental</option>
+        </select>
+
+        <label for="urgency">Urgency</label>
+        <select id="urgency" name="urgency" required>
+          <option value="">Select urgency</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+
+        <label for="date">Event Date</label>
+        <input type="date" id="date" name="date" required>
+
+        <button type="submit">Save Event</button>
+      </form>
+    </div>
+
+    <div class="form-card">
+      <h2>All Events</h2>
+      <div id="eventList" class="event-list"></div>
+    </div>
+  </main>
+
+  <script>
+    const eventForm = document.getElementById('eventForm');
+    const eventList = document.getElementById('eventList');
+
+    // Fetch events from backend and display
+    async function loadEvents() {
+      const res = await fetch('/api/events');
+      const events = await res.json();
+      eventList.innerHTML = '';
+      events.forEach(event => {
+        const div = document.createElement('div');
+        div.className = 'event-item';
+        div.innerHTML = `
+          <strong>${event.name}</strong> (${event.date})<br>
+          Location: ${event.location}<br>
+          Skills Required: ${event.skillsRequired.join(', ')}<br>
+          Urgency: ${event.urgency}<br>
+          Details: ${event.details}
+        `;
+        eventList.appendChild(div);
+      });
+    }
+
+    // Handle form submit
+    eventForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const skills = Array.from(document.getElementById('skills').selectedOptions).map(o => o.value);
+      const newEvent = {
+        name: document.getElementById('eventName').value,
+        details: document.getElementById('description').value,
+        location: document.getElementById('location').value,
+        skillsRequired: skills,
+        urgency: document.getElementById('urgency').value,
+        date: document.getElementById('date').value
+      };
+      const res = await fetch('/api/events/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEvent)
+      });
+      if (res.status === 201) {
+        alert('Event added!');
+        eventForm.reset();
+        loadEvents();
+      } else {
+        alert('Error adding event.');
+      }
+    });
+
+    loadEvents(); // initial load
+  </script>
+</body>
+</html>

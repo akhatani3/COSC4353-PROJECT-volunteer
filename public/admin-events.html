@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Manage Events</title>
+   <link href="style.css" rel="stylesheet" type="text/css">
+   <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+</head>
+
+
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+</script>
+
+
+<body>
+  <div class="container">
+    <h1>Admin: Event Management <button id="logoutBtn" class="btn-logout">Logout</button></h1>
+    <form id="eventForm" novalidate>
+      <div class="field">
+        <div class="label">Event Name *</div>
+        <input type="text" id="eventName" name="eventName" class="input" maxlength="100" required />
+        <div id="eventNameError" class="error"></div>
+      </div>
+      <div class="field">
+        <div class="label">Description *</div>
+        <textarea id="description" name="description" class="textarea" rows="3" required></textarea>
+        <div id="descriptionError" class="error"></div>
+      </div>
+      <div class="field">
+        <div class="label">Location *</div>
+        <input type="text" id="location" name="location" class="input" required />
+        <div id="locationError" class="error"></div>
+      </div>
+      <div class="field">
+        <div class="label">Required Skills (multiple) *</div>
+        <select id="reqSkills" name="reqSkills" class="multiselect" multiple required>
+          <option value="teaching">Teaching</option>
+          <option value="coding">Coding</option>
+          <option value="fundraising">Fundraising</option>
+          <option value="event_planning">Event Planning</option>
+          <option value="logistics">Logistics</option>
+        </select>
+        <div id="reqSkillsError" class="error"></div>
+      </div>
+      <div class="field">
+        <div class="label">Urgency *</div>
+        <select id="urgency" name="urgency" class="select" required>
+          <option value="">-- Select urgency --</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+        <div id="urgencyError" class="error"></div>
+      </div>
+      <div class="field">
+        <div class="label">Event Date *</div>
+        <input type="date" id="eventDate" name="eventDate" class="input" required />
+        <div id="eventDateError" class="error"></div>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn-add">Add / Update Event</button>
+      </div>
+      <div id="formMessage" class="error" style="margin-top:12px;"></div>
+    </form>
+
+    <table id="eventsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Date</th>
+          <th>Location</th>
+          <th>Skills</th>
+          <th>Urgency</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // Access control: only admins
+    // Access control: only admins
+    const profile = JSON.parse(localStorage.getItem('currentUser'));
+    if (!profile || profile.role !== 'admin') {
+      alert('Access denied. Admins only.');
+      window.location.href = 'index.html';
+    }
+
+
+    // event storage key
+    const eventsKey = 'va_events';
+
+    const form = document.getElementById('eventForm');
+    const eventName = document.getElementById('eventName');
+    const description = document.getElementById('description');
+    const locationEl = document.getElementById('location');
+    const reqSkills = document.getElementById('reqSkills');
+    const urgency = document.getElementById('urgency');
+    const eventDate = document.getElementById('eventDate');
+    const formMessage = document.getElementById('formMessage');
+
+    const errs = {
+      eventName: document.getElementById('eventNameError'),
+      description: document.getElementById('descriptionError'),
+      location: document.getElementById('locationError'),
+      reqSkills: document.getElementById('reqSkillsError'),
+      urgency: document.getElementById('urgencyError'),
+      eventDate: document.getElementById('eventDateError')
+    };
+
+    function loadEvents() {
+      const arr = JSON.parse(localStorage.getItem(eventsKey) || '[]');
+      return arr;
+    }
+    function saveEvents(arr) {
+      localStorage.setItem(eventsKey, JSON.stringify(arr));
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#eventsTable tbody');
+      tbody.innerHTML = '';
+      const arr = loadEvents();
+      arr.forEach((ev, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ev.eventName}</td>
+          <td>${ev.eventDate}</td>
+          <td>${ev.location}</td>
+          <td>${ev.reqSkills.join(', ')}</td>
+          <td>${ev.urgency}</td>
+          <td>
+            <button data-index="${idx}" class="btn-edit">Edit</button>
+            <button data-index="${idx}" class="btn-delete">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // attach handlers
+      document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const i = Number(e.target.dataset.index);
+          editEvent(i);
+        });
+      });
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const i = Number(e.target.dataset.index);
+          deleteEvent(i);
+        });
+      });
+    }
+
+    function editEvent(index) {
+      const arr = loadEvents();
+      const ev = arr[index];
+      eventName.value = ev.eventName;
+      description.value = ev.description;
+      locationEl.value = ev.location;
+      urgency.value = ev.urgency;
+      eventDate.value = ev.eventDate;
+      // skills
+      for (let opt of reqSkills.options) {
+        opt.selected = ev.reqSkills.includes(opt.value);
+      }
+      // store a hidden index in form
+      form.dataset.editIndex = index;
+    }
+
+    function deleteEvent(index) {
+      const arr = loadEvents();
+      arr.splice(index, 1);
+      saveEvents(arr);
+      renderTable();
+    }
+
+    function clearErrors() {
+      Object.values(errs).forEach(el => el.textContent = '');
+      formMessage.textContent = '';
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      clearErrors();
+
+      let ok = true;
+      if (!eventName.value.trim()) {
+        errs.eventName.textContent = 'Name is required.';
+        ok = false;
+      }
+      if (!description.value.trim()) {
+        errs.description.textContent = 'Description is required.';
+        ok = false;
+      }
+      if (!locationEl.value.trim()) {
+        errs.location.textContent = 'Location is required.';
+        ok = false;
+      }
+      const sel = Array.from(reqSkills.selectedOptions).map(o => o.value);
+      if (sel.length === 0) {
+        errs.reqSkills.textContent = 'Select required skills.';
+        ok = false;
+      }
+      if (!urgency.value) {
+        errs.urgency.textContent = 'Select urgency.';
+        ok = false;
+      }
+      if (!eventDate.value) {
+        errs.eventDate.textContent = 'Date is required.';
+        ok = false;
+      }
+
+      if (!ok) return;
+
+      const arr = loadEvents();
+      const newEvent = {
+        eventName: eventName.value.trim(),
+        description: description.value.trim(),
+        location: locationEl.value.trim(),
+        reqSkills: sel,
+        urgency: urgency.value,
+        eventDate: eventDate.value
+      };
+
+      if (form.dataset.editIndex != null) {
+        // updating existing
+        arr[form.dataset.editIndex] = newEvent;
+        delete form.dataset.editIndex;
+      } else {
+        // new
+        arr.push(newEvent);
+      }
+      saveEvents(arr);
+      renderTable();
+      form.reset();
+      formMessage.style.color = '#22c55e';
+      formMessage.textContent = 'Event saved.';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    });
+
+    // initial
+    renderTable();
+  </script>
+</body>
+
+</html>

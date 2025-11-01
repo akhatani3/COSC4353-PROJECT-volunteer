@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volunteer App — Matching</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#6366f1; --accent-600:#4f46e5; --ring:rgba(99,102,241,0.35); }
+    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh; }
+    header { background:var(--card); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(148,163,184,0.15); }
+    header h1 { margin:0; font-size:20px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:18px; font-size:14px; }
+    nav a:hover { color:var(--accent); }
+    main { flex:1; padding:28px; display:flex; justify-content:center; align-items:flex-start; flex-direction:column; }
+    .form-card { background:var(--card); border:1px solid rgba(148,163,184,0.15); border-radius:16px; padding:30px; width:100%; max-width:550px; box-shadow:0 6px 18px rgba(0,0,0,0.3); margin-bottom:20px; }
+    .form-card h2 { margin-top:0; font-size:22px; margin-bottom:20px; }
+    .match-item { padding:12px; border:1px solid rgba(148,163,184,0.2); border-radius:10px; margin-bottom:10px; background:#1f2937; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Volunteer Matching</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="event.html">Events</a>
+      <a href="register.html">Register</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <h2>Event Volunteer Matches</h2>
+      <div id="matchList"></div>
+    </div>
+  </main>
+
+  <script>
+    const matchList = document.getElementById('matchList');
+
+    async function loadMatches() {
+      const res = await fetch('/api/match');
+      const matches = await res.json();
+      matchList.innerHTML = '';
+      matches.forEach(match => {
+        const div = document.createElement('div');
+        div.className = 'match-item';
+        div.innerHTML = `<strong>${match.event}</strong><br>
+          Volunteers: ${match.matchedVolunteers.map(v => v.name).join(', ') || 'No matches yet'}`;
+        matchList.appendChild(div);
+      });
+    }
+
+    loadMatches();
+  </script>
+</body>
+</html>

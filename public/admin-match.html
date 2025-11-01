@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin — Match Volunteers</title>
+ <link href="style.css" rel="stylesheet" type="text/css">
+<button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+</script>
+
+
+</head>
+<body>
+
+<header>
+  <h2>Admin: Match Volunteers</h2>
+  <div>
+    <a href="profile.html">Profile</a>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="field">
+    <div class="label">Select Volunteer *</div>
+    <select id="volunteerSelect" class="select">
+      <option value="">-- Select --</option>
+    </select>
+    <div id="volError" class="error"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">Select Event *</div>
+    <select id="eventSelect" class="select">
+      <option value="">-- Select --</option>
+    </select>
+    <div id="evtError" class="error"></div>
+  </div>
+
+  <button id="matchBtn" class="match">Confirm Match</button>
+
+  <table id="matchesTable">
+    <thead>
+      <tr>
+        <th>Volunteer</th>
+        <th>Event</th>
+        <th>Skills Match</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const profile = JSON.parse(localStorage.getItem('currentUser'));
+if(!profile || profile.role!=='admin'){
+  alert('Access denied.');
+  window.location.href='index.html';
+}
+
+// logout button
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  localStorage.removeItem('currentUser');
+  window.location.href='index.html';
+});
+
+const volunteerSelect = document.getElementById('volunteerSelect');
+const eventSelect = document.getElementById('eventSelect');
+const matchBtn = document.getElementById('matchBtn');
+const matchesTable = document.querySelector('#matchesTable tbody');
+const volError = document.getElementById('volError');
+const evtError = document.getElementById('evtError');
+
+const eventsKey = 'va_events';
+const historyKey = 'va_history';
+const notifKey = 'va_notifications';
+const usersKey = 'users'; // store all users including volunteers/admins
+
+// Utilities
+function getAllVolunteers() {
+  const users = JSON.parse(localStorage.getItem(usersKey) || '[]');
+  return users.filter(u=>u.role==='user');
+}
+function getEvents(){ return JSON.parse(localStorage.getItem(eventsKey)||'[]'); }
+function getHistory(){ return JSON.parse(localStorage.getItem(historyKey)||'[]'); }
+function saveHistory(arr){ localStorage.setItem(historyKey, JSON.stringify(arr)); }
+function addNotification(email,msg){
+  const all=JSON.parse(localStorage.getItem(notifKey)||'{}');
+  if(!all[email]) all[email]=[];
+  all[email].push({message:msg, date:new Date().toISOString()});
+  localStorage.setItem(notifKey, JSON.stringify(all));
+}
+
+// Populate selects
+function populateVolunteers(){
+  volunteerSelect.innerHTML='<option value="">-- Select --</option>';
+  getAllVolunteers().forEach(v=>{
+    const opt=document.createElement('option');
+    opt.value=v.email;
+    opt.textContent=v.name || v.email;
+    volunteerSelect.appendChild(opt);
+  });
+}
+
+function populateEvents(suggested=[]){
+  eventSelect.innerHTML='<option value="">-- Select --</option>';
+  getEvents().forEach((ev,i)=>{
+    const opt=document.createElement('option');
+    opt.value=i;
+    opt.textContent=`${ev.eventName} (${ev.eventDate})`;
+    if(suggested.includes(i)) opt.style.fontWeight='bold';
+    eventSelect.appendChild(opt);
+  });
+}
+
+// Suggest events based on skills + availability
+function suggestEvents(vol){
+  const events=getEvents();
+  const suggestions=[];
+  events.forEach((ev,i)=>{
+    const skillMatch=(vol.skills||[]).some(s=>ev.reqSkills.includes(s));
+    const availMatch=(vol.availability||[]).includes(ev.eventDate);
+    if(skillMatch && availMatch) suggestions.push(i);
+  });
+  return suggestions;
+}
+
+// Render history table
+function renderMatches(){
+  matchesTable.innerHTML='';
+  getHistory().forEach((h,idx)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${h.volunteer}</td>
+      <td>${h.eventName}</td>
+      <td>${h.requiredSkills.join(', ')}</td>
+      <td>${h.eventDate}</td>
+      <td><button data-idx="${idx}">Remove</button></td>
+    `;
+    matchesTable.appendChild(tr);
+  });
+  matchesTable.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const idx=Number(e.target.dataset.idx);
+      const arr=getHistory();
+      arr.splice(idx,1);
+      saveHistory(arr);
+      renderMatches();
+    });
+  });
+}
+
+// Event handlers
+volunteerSelect.addEventListener('change',()=>{
+  const volEmail=volunteerSelect.value;
+  const vol=getAllVolunteers().find(v=>v.email===volEmail);
+  if(!vol) return;
+  const suggested=suggestEvents(vol);
+  populateEvents(suggested);
+});
+
+matchBtn.addEventListener('click',()=>{
+  volError.textContent=''; evtError.textContent='';
+  const volEmail=volunteerSelect.value;
+  const evtIndex=eventSelect.value;
+
+  if(!volEmail){ volError.textContent='Select a volunteer.'; return; }
+  if(evtIndex===''){ evtError.textContent='Select an event.'; return; }
+
+  const vol=getAllVolunteers().find(v=>v.email===volEmail);
+  const ev=getEvents()[evtIndex];
+  if(!vol || !ev) return;
+
+  const history=getHistory();
+  if(history.some(h=>h.volunteer===volEmail && h.eventName===ev.eventName && h.eventDate===ev.eventDate)){
+    alert('Already matched.'); return;
+  }
+
+  history.push({
+    volunteer: volEmail,
+    eventName: ev.eventName,
+    eventDate: ev.eventDate,
+    location: ev.location,
+    requiredSkills: ev.reqSkills,
+    urgency: ev.urgency,
+    status:"Assigned"
+  });
+  saveHistory(history);
+  addNotification(volEmail, `You have been assigned to ${ev.eventName} on ${ev.eventDate}`);
+  renderMatches();
+});
+
+// Init
+populateVolunteers();
+populateEvents();
+renderMatches();
+</script>
+</body>
+</html>

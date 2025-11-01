@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Registration — Volunteer App</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+  <script src="storage.js"></script>
+  <div class="card">
+    <h1>Create Admin Account</h1>
+    <p style="color:#94a3b8;font-size:14px;">Restricted: for administrators only</p>
+
+    <form id="adminRegisterForm" novalidate>
+      <div>
+        <label for="email">Email *</label>
+        <input id="email" type="email" required maxlength="100" placeholder="admin@example.org">
+        <div id="emailErr" class="error"></div>
+      </div>
+
+      <div>
+        <label for="password">Password *</label>
+        <input id="password" type="password" required minlength="8" maxlength="64" placeholder="••••••••">
+        <div id="passwordErr" class="error"></div>
+      </div>
+
+      <div>
+        <label for="confirm">Confirm Password *</label>
+        <input id="confirm" type="password" required minlength="8" maxlength="64" placeholder="••••••••">
+        <div id="confirmErr" class="error"></div>
+      </div>
+
+      <div class="row">
+        <label><input type="checkbox" id="showPw"> Show passwords</label>
+      </div>
+
+      <div class="actions">
+        <button class="primary" type="submit">Register Admin</button>
+      </div>
+
+      <div id="formMsg" class="success"></div>
+    </form>
+    <p class="footer">Already have an admin account? <a href="index.html">Sign in</a></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('adminRegisterForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const confirmPw = document.getElementById('confirm');
+    const showPw = document.getElementById('showPw');
+    const formMsg = document.getElementById('formMsg');
+  
+    showPw.addEventListener('change', () => {
+      const type = showPw.checked ? 'text' : 'password';
+      password.type = type;
+      confirmPw.type = type;
+    });
+  
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formMsg.textContent = '';
+  
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.value.trim(),
+            password: password.value,
+            confirmPassword: confirmPw.value,
+            role: 'admin'  // important: send role as admin
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (!data.success) {
+          formMsg.textContent = data.message || 'Registration failed.';
+          return;
+        }
+  
+        // Save profile to localStorage and redirect
+        localStorage.setItem('currentUser', JSON.stringify(data.profile));
+        formMsg.textContent = 'Admin account created! Redirecting…';
+        setTimeout(() => { window.location.href = 'admin-events.html'; }, 1000);
+  
+      } catch (err) {
+        console.error(err);
+        formMsg.textContent = 'An error occurred. Please try again later.';
+      }
+    });
+  </script>
+  
+</body>
+</html>

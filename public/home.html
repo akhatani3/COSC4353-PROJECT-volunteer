@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Volunteer Home</title>
+      <link href="style.css" rel="stylesheet" type="text/css">
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+</script>
+
+</head>
+<body>
+  <header>
+    <h1>Volunteer Home</h1>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="notif-bell" id="notifBell" data-count="0">🔔</div>
+      <nav>
+        <a href="profile.html">Profile</a>
+        <button id="logoutBtn">Logout</button>
+      </nav>
+    </div>
+    <div class="notif-panel" id="notifPanel">
+      <ul id="notifList"></ul>
+    </div>
+  </header>
+
+  <div id="message" class="msg"></div>
+
+  <table id="eventsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Location</th>
+        <th>Skills</th>
+        <th>Urgency</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const profile = JSON.parse(localStorage.getItem('currentUser'));
+    if (!profile) {
+      alert('Not logged in.');
+      window.location.href = 'index.html';
+    }
+    if (profile.role === 'admin') {
+      alert('Admins cannot access volunteer home.');
+      window.location.href = 'event-management.html';
+    }
+
+    const eventsKey = 'va_events'; // must match admin's save key
+    const historyKey = 'va_history';
+    const notifKey = 'va_notifications_' + profile.email;
+    const msg = document.getElementById('message');
+    const notifBell = document.getElementById('notifBell');
+    const notifPanel = document.getElementById('notifPanel');
+    const notifList = document.getElementById('notifList');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Helpers
+    function getEvents() {
+      return JSON.parse(localStorage.getItem(eventsKey) || '[]');
+    }
+    function getHistory() {
+      return JSON.parse(localStorage.getItem(historyKey) || '[]');
+    }
+    function saveHistory(arr) {
+      localStorage.setItem(historyKey, JSON.stringify(arr));
+    }
+    function getNotifs() {
+      return JSON.parse(localStorage.getItem(notifKey) || '[]');
+    }
+    function saveNotifs(arr) {
+      localStorage.setItem(notifKey, JSON.stringify(arr));
+    }
+
+    // Render events
+    function renderEvents() {
+      const tbody = document.querySelector('#eventsTable tbody');
+      tbody.innerHTML = '';
+      const events = getEvents();
+      const history = getHistory();
+
+      if (events.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" style="text-align:center;color:#94a3b8;">No events available yet</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      events.forEach(ev => {
+        const alreadyJoined = history.some(
+          h => h.volunteer === profile.email && h.eventName === ev.eventName && h.eventDate === ev.eventDate
+        );
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ev.eventName}</td>
+          <td>${ev.eventDate}</td>
+          <td>${ev.location}</td>
+          <td>${ev.reqSkills.join(', ')}</td>
+          <td>${ev.urgency}</td>
+          <td>
+            ${alreadyJoined 
+              ? '<span style="color:#22c55e;font-weight:bold;">Joined</span>'
+              : `<button data-evt='${JSON.stringify(ev)}'>Join</button>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const ev = JSON.parse(e.target.dataset.evt);
+          joinEvent(ev);
+        });
+      });
+    }
+
+    // Join event
+    function joinEvent(ev) {
+      const history = getHistory();
+      history.push({
+        volunteer: profile.email,
+        eventName: ev.eventName,
+        eventDate: ev.eventDate,
+        location: ev.location,
+        requiredSkills: ev.reqSkills,
+        urgency: ev.urgency,
+        status: 'Joined'
+      });
+      saveHistory(history);
+
+      // Add notification
+      const notifs = getNotifs();
+      notifs.unshift({
+        message: `You joined "${ev.eventName}" (${ev.eventDate})`,
+        time: new Date().toLocaleString()
+      });
+      saveNotifs(notifs);
+
+      msg.textContent = `You successfully joined: ${ev.eventName}`;
+      setTimeout(() => msg.textContent = '', 3000);
+
+      renderEvents();
+      renderNotifs();
+    }
+
+    // Render notifications
+    function renderNotifs() {
+      const notifs = getNotifs();
+      notifList.innerHTML = '';
+      notifs.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = `${n.message} — ${n.time}`;
+        notifList.appendChild(li);
+      });
+      notifBell.setAttribute('data-count', notifs.length);
+    }
+
+    notifBell.addEventListener('click', () => {
+      notifPanel.classList.toggle('active');
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    });
+
+    // Init
+    renderEvents();
+    renderNotifs();
+  </script>
+</body>
+</html>
