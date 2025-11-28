@@ -7,6 +7,8 @@ const fs = require("fs");
 require("dotenv").config();
 const { connect } = require("./db/mongoose");
 
+
+const eventsRoutes = require('./routes/eventsMongo');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -34,12 +36,12 @@ const volunteerHistoryRouter = require("./routes/volunteerHistory");
 const reportsRouter = require("./routes/reports");
 
 // Use the route files
-app.use("/api/events", eventsRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/volunteer-history", volunteerHistoryRouter);
+app.use('/api/events', eventsRoutes);
 app.use("/api/reports", reportsRouter);
 
 // Export app for tests
