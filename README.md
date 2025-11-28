@@ -1,11 +1,11 @@
 # COSC4353-PROJECT-volunteer
-# 0. How to start the volunteer Project Demo?
+#  How to start the volunteer Project Demo?
 - Download the entire project as a ZIP and extract it.
 - Open the project folder in Visual Studio.
 - Open terminal in VStudio and run: rm -rf node_modules package-lock.json && npm install (only for the first time)
 - Run: npm install pdfkit csv-writer (only for the first time)
 - Run: node server.js (every time you need to start the server)
-- Copy the localhost IP address (Ex, http://localhost:3000) and paste it into the browser.
+- Copy the localhost IP address (Ex, http://localhost:3000 ) and paste it into the browser.
 
 # 1. Login Page
 Purpose: Allows volunteers and administrators to securely access the system.
