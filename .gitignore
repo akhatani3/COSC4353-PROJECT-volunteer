@@ -31,3 +31,4 @@ dist-ssr/
 
 # Data
 data/*.json
+temp/
