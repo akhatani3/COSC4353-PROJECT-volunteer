@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Volunteer Profile</title>
+  <title>Volunteer History</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -64,29 +64,83 @@
       font-size:14px;
     }
 
+    /* Report Button */
+    .report-section {
+      margin-top: 40px;
+      width: 100%;
+      max-width: 650px;
+      text-align: center;
+    }
+    .report-btn {
+      background: linear-gradient(180deg, #10b981, #059669);
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      color: white;
+      transition: all 0.3s;
+    }
+    .report-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
     /* Modal */
     .modal {
-      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
       justify-content:center; align-items:center; z-index:50;
     }
     .modal.active { display:flex; }
     .modal-content {
-      background:var(--card); padding:24px; border-radius:16px;
-      width:90%; max-width:480px; position:relative;
+      background:var(--card); padding:32px; border-radius:16px;
+      width:90%; max-width:420px; position:relative;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     }
-    .modal-content h2 { margin-top:0; }
+    .modal-content h2 { margin-top:0; margin-bottom: 20px; font-size: 22px; }
     .modal-content .close {
       position:absolute; top:12px; right:16px;
-      font-size:20px; cursor:pointer; color:var(--muted);
+      font-size:24px; cursor:pointer; color:var(--muted);
     }
     .modal-content .close:hover { color:var(--accent); }
+    
+    .format-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .format-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .format-btn.pdf {
+      background: #ef4444;
+      color: white;
+    }
+    .format-btn.pdf:hover {
+      background: #dc2626;
+    }
+    .format-btn.csv {
+      background: #22c55e;
+      color: white;
+    }
+    .format-btn.csv:hover {
+      background: #16a34a;
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="left">
       <img class="profile-pic" id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
-      <h1 id="greeting">Welcome, Volunteer</h1>
+      <h1 id="greeting">Volunteer History</h1>
     </div>
     <nav>
       <a href="admin-events.html">Admin</a>
@@ -112,6 +166,15 @@
       <h2>Available Events</h2>
       <div id="eventList" class="event-list"></div>
     </div>
+
+    <!-- Report Generation Section -->
+    <div class="report-section">
+      <h2>Generate Participation Report</h2>
+      <p style="color: var(--muted); margin-bottom: 20px;">
+        Download a comprehensive report of all volunteers and their participation history
+      </p>
+      <button class="report-btn" id="generateReportBtn">Generate Report</button>
+    </div>
   </main>
 
   <!-- Event Details Modal -->
@@ -127,6 +190,19 @@
     </div>
   </div>
 
+  <!-- Report Format Selection Modal -->
+  <div id="reportModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeReportModal">&times;</span>
+      <h2>Select Report Format</h2>
+      <p style="color: var(--muted); margin-bottom: 8px;">Choose your preferred format:</p>
+      <div class="format-buttons">
+        <button class="format-btn pdf" id="pdfBtn">PDF</button>
+        <button class="format-btn csv" id="csvBtn">CSV</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const profileForm = document.getElementById('profileForm');
     const statusEl = document.getElementById('status');
@@ -137,12 +213,19 @@
     const modal = document.getElementById('eventModal');
     const closeModal = document.getElementById('closeModal');
 
+    const reportModal = document.getElementById('reportModal');
+    const closeReportModal = document.getElementById('closeReportModal');
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    const pdfBtn = document.getElementById('pdfBtn');
+    const csvBtn = document.getElementById('csvBtn');
+
     // === Profile ===
     profileForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('fullName').value;
       greeting.textContent = `Welcome, ${name || 'Volunteer'}`;
-      statusEl.textContent = "✅ Profile saved successfully!";
+      statusEl.textContent = "Profile saved successfully!";
+      // Note: In production, this should call an API to save to database
       localStorage.setItem('profile', JSON.stringify({
         email: document.getElementById('userEmail').value,
         fullName: name,
@@ -163,38 +246,93 @@
       greeting.textContent = `Welcome, ${savedProfile.fullName}`;
     }
 
-    // === Load Events from JSON API ===
+    // === Load Events from API ===
     async function loadEvents() {
-      const res = await fetch('/api/events');
-      const events = await res.json();
-      eventList.innerHTML = '';
-      events.forEach(event => {
-        const div = document.createElement('div');
-        div.className = 'event-item';
-        div.innerHTML = `
-          <h3>${event.name}</h3>
-          <p>${event.date} — ${event.location}</p>
-          <button>View Details</button>
-        `;
-        div.querySelector('button').addEventListener('click', () => showModal(event));
-        eventList.appendChild(div);
-      });
+      try {
+        const res = await fetch('/api/events');
+        const events = await res.json();
+        eventList.innerHTML = '';
+        events.forEach(event => {
+          const div = document.createElement('div');
+          div.className = 'event-item';
+          const eventDate = new Date(event.date).toLocaleDateString();
+          div.innerHTML = `
+            <h3>${event.name}</h3>
+            <p>${eventDate} — ${event.location}</p>
+            <button>View Details</button>
+          `;
+          div.querySelector('button').addEventListener('click', () => showModal(event));
+          eventList.appendChild(div);
+        });
+      } catch (error) {
+        console.error('Error loading events:', error);
+        eventList.innerHTML = '<p>Error loading events</p>';
+      }
     }
 
     function showModal(event) {
       modal.classList.add('active');
       document.getElementById('modalTitle').textContent = event.name;
-      document.getElementById('modalDate').textContent = event.date;
+      document.getElementById('modalDate').textContent = new Date(event.date).toLocaleDateString();
       document.getElementById('modalLocation').textContent = event.location;
       document.getElementById('modalUrgency').textContent = event.urgency;
-      document.getElementById('modalSkills').textContent = event.skillsRequired.join(', ');
-      document.getElementById('modalDetails').textContent = event.details;
+      document.getElementById('modalSkills').textContent = event.skillsRequired?.join(', ') || 'N/A';
+      document.getElementById('modalDetails').textContent = event.details || 'No additional details';
     }
 
     closeModal.addEventListener('click', () => modal.classList.remove('active'));
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 
-    loadEvents(); // initial load
+    // === Report Generation ===
+    generateReportBtn.addEventListener('click', () => {
+      reportModal.classList.add('active');
+    });
+
+    closeReportModal.addEventListener('click', () => reportModal.classList.remove('active'));
+    reportModal.addEventListener('click', (e) => { if (e.target === reportModal) reportModal.classList.remove('active'); });
+
+    async function downloadReport(format) {
+      try {
+        generateReportBtn.disabled = true;
+        generateReportBtn.textContent = '⏳ Generating...';
+
+        const response = await fetch(`/api/reports/volunteer-history?format=${format}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to generate report');
+        }
+
+        // Get the blob from response
+        const blob = await response.blob();
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `volunteer-history-report.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        reportModal.classList.remove('active');
+        alert(`${format.toUpperCase()} report downloaded successfully!`);
+      } catch (error) {
+        console.error('Error downloading report:', error);
+        alert('Error generating report. Please try again.');
+      } finally {
+        generateReportBtn.disabled = false;
+        generateReportBtn.textContent = '📊 Generate Report';
+      }
+    }
+
+    pdfBtn.addEventListener('click', () => downloadReport('pdf'));
+    csvBtn.addEventListener('click', () => downloadReport('csv'));
+
+    // Initialize
+    loadEvents();
   </script>
 </body>
 </html>

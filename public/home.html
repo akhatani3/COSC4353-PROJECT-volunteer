@@ -81,10 +81,6 @@
       alert('Not logged in.');
       window.location.href = 'index.html';
     }
-    if (profile.role === 'admin') {
-      alert('Admins cannot access volunteer home.');
-      window.location.href = 'event-management.html';
-    }
 
     // Set profile info
     document.getElementById('greetName').textContent = profile.name || 'Volunteer';

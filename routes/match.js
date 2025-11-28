@@ -1,6 +1,6 @@
 // match.js
 const express = require('express');
-const router = express.Router();  // ✅ this line was missing
+const router = express.Router();
 
 // Hard-coded volunteer profiles
 const volunteers = [
@@ -14,7 +14,7 @@ const events = [
   { id: 2, name: "Food Drive", location: "Student Center", skillsRequired: ["organization", "communication"], urgency: "high" },
 ];
 
-// ✅ Match volunteers to events
+// Match volunteers to events
 router.get('/', (req, res) => {
   const matches = [];
 

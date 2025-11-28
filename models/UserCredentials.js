@@ -12,7 +12,9 @@ const userCredentialsSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function () {
+      return !this.google;
+    },
     minlength: 6
   },
   name: {

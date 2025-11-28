@@ -14,8 +14,10 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.19.2"
+    "mongoose": "^8.19.2",
+    "pdfkit": "^0.17.2"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

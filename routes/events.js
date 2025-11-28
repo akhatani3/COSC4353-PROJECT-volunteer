@@ -24,12 +24,12 @@ let events = [
   }
 ];
 
-// ✅ Get all events
+// Get all events
 router.get('/', (req, res) => {
   res.json(events);
 });
 
-// ✅ Create new event
+// Create new event
 router.post('/add', (req, res) => {
   const { name, date, location, skillsRequired, urgency, details } = req.body;
 
