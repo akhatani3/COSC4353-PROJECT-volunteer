@@ -6,7 +6,7 @@ const { Parser } = require("json2csv");
 const VolunteerHistory = require("../models/VolunteerHistory");
 const UserCredentials = require("../models/UserCredentials");
 const UserProfile = require("../models/UserProfile");
-const EventDetails = require("../models/eventdetails");
+const EventDetails = require("../models/EventDetails");
 
 // Generate Volunteer Participation History Report
 router.get("/volunteer-history", async (req, res) => {
@@ -165,12 +165,18 @@ router.get("/volunteer-history", async (req, res) => {
         }
       });
 
-      const parser = new Parser();
-      const csv = parser.parse(flatData);
-
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=volunteer-history-report.csv');
-      res.send(csv);
+
+      // Handle empty data case
+      if (flatData.length === 0) {
+        const emptyCSV = 'Volunteer Name,Volunteer Email,Skills,Total Events,Total Hours,Event Name,Event Date,Role,Hours,Status,Participation Date\n';
+        res.send(emptyCSV);
+      } else {
+        const parser = new Parser();
+        const csv = parser.parse(flatData);
+        res.send(csv);
+      }
     }
 
   } catch (error) {
