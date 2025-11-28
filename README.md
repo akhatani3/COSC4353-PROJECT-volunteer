@@ -1,5 +1,5 @@
 # COSC4353-PROJECT-volunteer
-#0. How to start the volunteer Project Demo?
+# 0. How to start the volunteer Project Demo?
 - Download the entire project as a ZIP and extract it.
 - Open the project folder in Visual Studio.
 - Open terminal in VStudio and run: rm -rf node_modules package-lock.json && npm install
