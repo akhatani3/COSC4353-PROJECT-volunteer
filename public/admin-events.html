@@ -48,6 +48,37 @@
 
     .theme-toggle { border:1px solid var(--accent); background:none; color:var(--accent); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:14px; }
     .theme-toggle:hover { background:var(--accent); color:#fff; }
+
+    .export-section { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+    .export-btn { 
+      flex:1; min-width:150px; padding:12px; border-radius:8px; font-size:14px; 
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-preview { background:linear-gradient(180deg, #10b981, #059669); }
+    .btn-csv { background:linear-gradient(180deg, #f59e0b, #d97706); }
+    .btn-pdf { background:linear-gradient(180deg, #ef4444, #dc2626); }
+
+    .preview-modal { 
+      display:none; position:fixed; top:0; left:0; right:0; bottom:0; 
+      background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; 
+    }
+    .preview-modal.active { display:flex; }
+    .preview-content { 
+      background:var(--card); border-radius:12px; padding:30px; 
+      max-width:90%; max-height:80%; overflow:auto; position:relative;
+      box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    }
+    .preview-content h3 { margin-top:0; }
+    .close-modal { 
+      position:absolute; top:15px; right:15px; background:#ef4444; 
+      color:white; border:none; border-radius:50%; width:32px; height:32px; 
+      cursor:pointer; font-size:18px; font-weight:bold;
+    }
+    .preview-text { 
+      background:var(--bg); padding:20px; border-radius:8px; 
+      font-family:monospace; font-size:12px; white-space:pre-wrap; 
+      overflow:auto; max-height:500px; color:var(--text);
+    }
   </style>
 </head>
 <body>
@@ -108,6 +139,19 @@
 
     <div class="form-card">
       <h2>All Events</h2>
+      
+      <div class="export-section">
+        <button class="export-btn btn-preview" onclick="previewCSV()">
+          👁️ Preview CSV
+        </button>
+        <button class="export-btn btn-csv" onclick="downloadCSV()">
+          📄 Download CSV
+        </button>
+        <button class="export-btn btn-pdf" onclick="downloadPDF()">
+          📕 Download PDF
+        </button>
+      </div>
+
       <table>
         <thead>
           <tr>
@@ -118,6 +162,15 @@
       </table>
     </div>
   </main>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="preview-modal">
+    <div class="preview-content">
+      <button class="close-modal" onclick="closePreview()">×</button>
+      <h3>CSV Preview</h3>
+      <div id="previewText" class="preview-text"></div>
+    </div>
+  </div>
 
   <script>
     // Theme handling
@@ -167,7 +220,7 @@
           </td>`;
         table.appendChild(row);
       });
-      window.allEvents = events; // store for editing
+      window.allEvents = events;
     }
 
     async function deleteEvent(id) {
@@ -211,6 +264,61 @@
       form.reset();
       loadEvents();
     };
+
+    // Export functions
+    async function previewCSV() {
+      try {
+        const res = await fetch('/api/events/preview/csv');
+        const csvText = await res.text();
+        document.getElementById('previewText').textContent = csvText;
+        document.getElementById('previewModal').classList.add('active');
+      } catch (error) {
+        alert('Failed to preview CSV: ' + error.message);
+      }
+    }
+
+    function closePreview() {
+      document.getElementById('previewModal').classList.remove('active');
+    }
+
+    async function downloadCSV() {
+      try {
+        const res = await fetch('/api/events/export/csv');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `events-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        alert('Failed to download CSV: ' + error.message);
+      }
+    }
+
+    async function downloadPDF() {
+      try {
+        const res = await fetch('/api/events/export/pdf');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `events-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        alert('Failed to download PDF: ' + error.message);
+      }
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePreview();
+    });
 
     loadEvents();
   </script>
