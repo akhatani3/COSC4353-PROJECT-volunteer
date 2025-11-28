@@ -1,4 +1,10 @@
 # COSC4353-PROJECT-volunteer
+#0. How to start the volunteer Project Demo?
+- Download the entire project as a ZIP and extract it.
+- Open the project folder in Visual Studio.
+- Open terminal in VStudio and run: rm -rf node_modules package-lock.json && npm install
+- Run: node server.js
+- Copy the localhost IP address (Ex, http://localhost:3000) and paste it into the browser.
 
 # 1. Login Page
 Purpose: Allows volunteers and administrators to securely access the system.
