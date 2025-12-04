@@ -175,12 +175,17 @@
       border-radius: 8px;
       padding: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      color: #333;
     }
-    .event-item { padding: 8px 6px; border-bottom: 1px dashed #eee; }
+    .event-item { padding: 8px 6px; border-bottom: 1px dashed #eee; color: #333; }
     .event-item:last-child { border-bottom: none; }
     .reminder-options { margin-top: 6px; display:flex; flex-direction:column; gap:6px; }
     .small { font-size: 0.85rem; color:#666; }
     .top-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    /* Dark mode text for event details */
+    body.dark #dayEvents { background: #0d1723; color: #e6eef8; }
+    body.dark .event-item { color: #e6eef8; border-bottom-color: rgba(255,255,255,0.06); }
+    body.dark .small { color: #b0bcd4; }
   </style>
 </head>
 <body>
