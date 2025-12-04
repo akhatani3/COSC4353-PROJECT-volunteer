@@ -12,22 +12,39 @@
 
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      background: #f3f4f6; /* light grey */
+      color: #333;
     }
 
     .profile-container {
-      background: #fff;
+      background: transparent;
       border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-      width: 400px;
-      max-width: 90%;
+      width: 900px;
+      max-width: 95%;
       padding: 2rem;
       animation: fadeIn 0.6s ease;
+      position: relative;
     }
+
+    /* Two-column layout */
+    .columns { display: flex; gap: 20px; align-items: flex-start; }
+    .left-column { flex: 0 0 40%; background: #fff; border-radius:12px; padding:18px; box-shadow:0 8px 22px rgba(0,0,0,0.08); }
+    .right-column { flex: 1 1 60%; background: #fff; border-radius:12px; padding:18px; box-shadow:0 8px 22px rgba(0,0,0,0.08); margin-left:12px; border-left:1px solid #e6e6e6; }
+    .back-btn {
+      background: transparent; border: none; color: #5563DE; font-weight:700; cursor:pointer; margin-bottom:8px;
+    }
+    /* Dark theme styles */
+    body.dark { background: #071025; color: #e6eef8; }
+    body.dark .left-column, body.dark .right-column { background: #0d1723; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+    body.dark .right-column { border-left-color: rgba(255,255,255,0.06); }
+    body.dark .cal-cell { background: #0b1622; color: #dceffb; }
+    body.dark .cal-cell .date-num { color: #fff; }
+    body.dark .chip { background: #88a2ff; }
+    body.dark .back-btn { color: #a8c4ff; }
 
     h1 {
       text-align: center;
@@ -102,12 +119,84 @@
       from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Calendar styles */
+    #calendarContainer {
+      margin-top: 1rem;
+    }
+    #calendarHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    #calendarHeader button {
+      background: transparent;
+      color: #5563DE;
+      border: 1px solid #e6e9fb;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 1.2rem;
+    }
+    #monthLabel {
+      font-weight: 600;
+      color: #333;
+    }
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .cal-cell {
+      background: #f7f8ff;
+      padding: 8px;
+      min-height: 70px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      position: relative;
+      cursor: pointer;
+    }
+    .cal-cell .date-num {
+      font-weight: 700;
+      color: #333;
+    }
+    .cal-cell .event-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ff6b6b;
+      border-radius: 50%;
+      margin-left: 6px;
+    }
+    .cal-cell.dim { opacity: 0.45; }
+    #dayEvents {
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .event-item { padding: 8px 6px; border-bottom: 1px dashed #eee; }
+    .event-item:last-child { border-bottom: none; }
+    .reminder-options { margin-top: 6px; display:flex; flex-direction:column; gap:6px; }
+    .small { font-size: 0.85rem; color:#666; }
+    .top-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   </style>
 </head>
 <body>
   <div class="profile-container">
-    <h1>Volunteer Profile</h1>
-    <form id="profileForm">
+    <div class="top-controls">
+      <div>
+        <button id="backBtn" class="back-btn">← Back</button>
+      </div>
+      <div>
+        <button id="themeToggleBtn" class="back-btn">🌙 Dark</button>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="left-column">
+        <h1>Volunteer Profile</h1>
+        <form id="profileForm">
       <input id="userEmail" type="email" placeholder="Email" required />
       <input id="fullName" type="text" placeholder="Full Name" required />
       <input id="state" type="text" placeholder="State" />
@@ -116,7 +205,21 @@
       <div id="skillsPreview" class="skills-preview"></div>
       <button type="submit">Save</button>
     </form>
-    <p id="status"></p>
+      <p id="status"></p>
+      </div>
+      <div class="right-column">
+        <h2 class="events-title">Upcoming Events</h2>
+        <div id="calendarContainer">
+          <div id="calendarHeader">
+            <button id="prevMonth">‹</button>
+            <div id="monthLabel"></div>
+            <button id="nextMonth">›</button>
+          </div>
+          <div id="calendar"></div>
+          <div id="dayEvents"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -177,6 +280,271 @@
         document.getElementById('skills').value = data.skills || '';
         skillsInput.dispatchEvent(new Event('input'));
       }
+      // initialize calendar after loading profile
+      initCalendar();
+    });
+
+    // Back button handler
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (history.length > 1) history.back(); else window.location.href = 'index.html';
+    });
+
+    // Theme toggle handling
+    const themeBtn = document.getElementById('themeToggleBtn');
+    function applyTheme(t) {
+      if (t === 'dark') {
+        document.body.classList.add('dark');
+        themeBtn.textContent = '☀️ Light';
+      } else {
+        document.body.classList.remove('dark');
+        themeBtn.textContent = '🌙 Dark';
+      }
+    }
+
+    // init from localStorage
+    const savedTheme = localStorage.getItem('profileTheme') || 'light';
+    applyTheme(savedTheme);
+
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark');
+      const newTheme = isDark ? 'dark' : 'light';
+      localStorage.setItem('profileTheme', newTheme);
+      applyTheme(newTheme);
+    });
+
+    /* Calendar and reminders logic */
+    let eventsList = [];
+    let reminders = JSON.parse(localStorage.getItem('eventReminders') || '{}');
+    const calendarEl = document.getElementById('calendar');
+    const monthLabel = document.getElementById('monthLabel');
+    const prevMonthBtn = document.getElementById('prevMonth');
+    const nextMonthBtn = document.getElementById('nextMonth');
+    const dayEvents = document.getElementById('dayEvents');
+
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth();
+
+    function fetchEvents() {
+      return fetch('/api/events')
+        .then(r => r.json())
+        .then(data => {
+          eventsList = data.map(ev => ({ ...ev, date: ev.date }));
+          return eventsList;
+        })
+        .catch(err => { console.error('Failed to load events', err); return []; });
+    }
+
+    function initCalendar() {
+      fetchEvents().then(() => {
+        buildCalendar(currentYear, currentMonth);
+      });
+    }
+
+    function buildCalendar(year, month) {
+      calendarEl.innerHTML = '';
+      const first = new Date(year, month, 1);
+      const startDay = first.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      monthLabel.textContent = first.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+
+      // add weekday headers
+      const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      weekdays.forEach(d => {
+        const hd = document.createElement('div');
+        hd.className = 'cal-cell';
+        hd.style.fontWeight = '700';
+        hd.style.background = 'transparent';
+        hd.textContent = d;
+        calendarEl.appendChild(hd);
+      });
+
+      // pad from previous month
+      const prevDays = startDay;
+      const prevMonth = new Date(year, month, 0).getDate();
+      for (let i = prevMonth - prevDays + 1; i <= prevMonth; i++) {
+        const cell = makeCell(year, month - 1, i, true);
+        calendarEl.appendChild(cell);
+      }
+
+      // current month days
+      for (let d = 1; d <= daysInMonth; d++) {
+        const cell = makeCell(year, month, d, false);
+        calendarEl.appendChild(cell);
+      }
+
+      // fill remaining cells to complete grid (optional)
+      const totalCells = (7 * 7); // header + 6 weeks
+      while (calendarEl.children.length < totalCells) {
+        const nextDay = calendarEl.children.length - (7 + prevDays) + 1; // not exact, but fine
+        const cell = makeCell(year, month + 1, nextDay, true);
+        calendarEl.appendChild(cell);
+      }
+    }
+
+    function makeCell(y, m, d, dim) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell' + (dim ? ' dim' : '');
+      const dateNum = document.createElement('div');
+      dateNum.className = 'date-num';
+      dateNum.textContent = d;
+      cell.appendChild(dateNum);
+
+      const iso = toISODate(new Date(y, m, d));
+      const todaysEvents = eventsList.filter(ev => ev.date && ev.date.startsWith(iso));
+      if (todaysEvents.length) {
+        const dot = document.createElement('span');
+        dot.className = 'event-dot';
+        dateNum.appendChild(dot);
+      }
+
+      cell.addEventListener('click', () => {
+        renderDayEvents(iso);
+      });
+      return cell;
+    }
+
+    function toISODate(dt) {
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, '0');
+      const d = String(dt.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function renderDayEvents(isoDate) {
+      const list = eventsList.filter(ev => ev.date && ev.date.startsWith(isoDate));
+      dayEvents.innerHTML = '';
+      const heading = document.createElement('div');
+      heading.style.fontWeight = '700';
+      heading.style.marginBottom = '6px';
+      heading.textContent = `Events on ${isoDate}`;
+      dayEvents.appendChild(heading);
+
+      if (!list.length) {
+        const none = document.createElement('div');
+        none.className = 'small';
+        none.textContent = 'No events scheduled for this day.';
+        dayEvents.appendChild(none);
+        return;
+      }
+
+      list.forEach(ev => {
+        const item = document.createElement('div');
+        item.className = 'event-item';
+        const title = document.createElement('div');
+        title.textContent = ev.name + ' — ' + ev.location;
+        item.appendChild(title);
+
+        const desc = document.createElement('div');
+        desc.className = 'small';
+        desc.textContent = ev.details || '';
+        item.appendChild(desc);
+
+        // Reminder controls
+        const remindRow = document.createElement('div');
+        remindRow.style.marginTop = '6px';
+        const remindCheckbox = document.createElement('input');
+        remindCheckbox.type = 'checkbox';
+        remindCheckbox.id = 'remind_' + ev.id;
+        remindCheckbox.checked = Boolean(reminders[ev.id] && reminders[ev.id].length);
+        const remindLabel = document.createElement('label');
+        remindLabel.htmlFor = remindCheckbox.id;
+        remindLabel.style.marginLeft = '6px';
+        remindLabel.textContent = 'Email reminders';
+        remindRow.appendChild(remindCheckbox);
+        remindRow.appendChild(remindLabel);
+        item.appendChild(remindRow);
+
+        const opts = document.createElement('div');
+        opts.className = 'reminder-options';
+        opts.style.display = remindCheckbox.checked ? 'flex' : 'none';
+
+        const options = [
+          { id: '1day', label: '1 day before' },
+          { id: '2days', label: '2 days before' },
+          { id: '1week', label: '1 week before' },
+          { id: 'day-7am', label: 'On the day (7:00 AM)' }
+        ];
+
+        options.forEach(op => {
+          const row = document.createElement('label');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.dataset.opt = op.id;
+          cb.style.marginRight = '8px';
+          if (reminders[ev.id] && reminders[ev.id].includes(op.id)) cb.checked = true;
+          row.appendChild(cb);
+          const txt = document.createElement('span');
+          txt.textContent = op.label;
+          row.appendChild(txt);
+          opts.appendChild(row);
+        });
+
+        item.appendChild(opts);
+
+        remindCheckbox.addEventListener('change', () => {
+          opts.style.display = remindCheckbox.checked ? 'flex' : 'none';
+        });
+
+        dayEvents.appendChild(item);
+      });
+
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save reminders';
+      saveBtn.style.marginTop = '8px';
+      saveBtn.addEventListener('click', () => {
+        saveRemindersForDate(isoDate);
+      });
+      dayEvents.appendChild(saveBtn);
+    }
+
+    function saveRemindersForDate(isoDate) {
+      const email = document.getElementById('userEmail').value.trim();
+      if (!email) {
+        alert('Please enter your email at the top of the profile to receive reminders.');
+        return;
+      }
+
+      const items = Array.from(dayEvents.querySelectorAll('.event-item'));
+      items.forEach(item => {
+        const title = item.querySelector('div').textContent || '';
+        const remindCheckbox = item.querySelector('input[type="checkbox"]');
+        const evIdMatch = remindCheckbox.id && remindCheckbox.id.replace('remind_', '');
+        const optChecks = Array.from(item.querySelectorAll('.reminder-options input[type="checkbox"]'));
+        const selected = optChecks.filter(c => c.checked).map(c => c.dataset.opt);
+
+        if (remindCheckbox.checked && selected.length) {
+          reminders[evIdMatch] = selected;
+        } else {
+          delete reminders[evIdMatch];
+        }
+
+        // Send notification records to server for persistence (server stores but doesn't send email)
+        // One notification per selected option
+        selected.forEach(opt => {
+          const msg = `Reminder (${opt}) for event ${title} on ${isoDate}`;
+          fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: email, type: 'email-reminder', message: msg, relatedEventId: evIdMatch })
+          }).catch(err => console.warn('notif save failed', err));
+        });
+      });
+
+      localStorage.setItem('eventReminders', JSON.stringify(reminders));
+      alert('Reminders saved locally. Server notification entries created.');
+    }
+
+    prevMonthBtn.addEventListener('click', () => {
+      currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      buildCalendar(currentYear, currentMonth);
+    });
+    nextMonthBtn.addEventListener('click', () => {
+      currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      buildCalendar(currentYear, currentMonth);
     });
   </script>
 </body>
