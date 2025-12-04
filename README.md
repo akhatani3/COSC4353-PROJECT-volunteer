@@ -4,6 +4,7 @@
 - Open the project folder in Visual Studio.
 - Open terminal in VStudio and run: rm -rf node_modules package-lock.json && npm install (only for the first time)
 - Run: npm install pdfkit csv-writer nodemailer(only for the first time)
+- Run: brew services start mongodb-community
 - Run: node server.js (every time you need to start the server)
 - Copy the localhost IP address (Ex, http://localhost:3000 ) and paste it into the browser.
 
